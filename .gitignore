@@ -1,7 +1,8 @@
 # Sensitive data
 .env
 .env.local
-
+go.mod
+go.sum
 # Cache files
 __debug_bin
 .vscode/
