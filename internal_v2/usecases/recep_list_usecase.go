@@ -1,4 +1,4 @@
-package services
+package usecases
 
 import (
 	"errors"
@@ -9,17 +9,17 @@ import (
 	"github.com/AlexanderMorozov1919/mobileapp/internal/repository"
 )
 
-type receptionService struct {
+type ReceptionUseCase struct {
 	repo repository.ReceptionRepository
 }
 
-// NewReceptionService создает новый экземпляр сервиса
-func NewReceptionService(repo repository.ReceptionRepository) ReceptionService {
-	return &receptionService{repo: repo}
+// NewReceptionUseCase создает новый экземпляр сервиса
+func NewReceptionUseCase(repo repository.ReceptionRepository) ReceptionUseCase {
+	return &ReceptionUseCase{repo: repo}
 }
 
 // CreateReception создает новую запись на прием с валидацией
-func (s *receptionService) CreateReception(reception *models.Reception) error {
+func (s *ReceptionUseCase) CreateReception(reception *models.Reception) error {
 	// Установка статуса по умолчанию
 	reception.Status = models.StatusScheduled
 

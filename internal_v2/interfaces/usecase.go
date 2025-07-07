@@ -7,11 +7,11 @@ import (
 )
 
 type SmpService interface {
-	GetCallings(doctorID uint) ([]ReceptionResponce, error)
+	// GetCallings(doctorID uint) ([]ReceptionResponce, error)
 }
 
 // ReceptionService определяет контракт для работы с записями на прием
-type ReceptionService interface {
+type ReceptionUseCase interface {
 	CreateReception(reception *models.Reception) error
 	UpdateReception(reception *models.Reception) error
 	CancelReception(id uint, reason string) error

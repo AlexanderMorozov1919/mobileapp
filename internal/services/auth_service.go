@@ -42,23 +42,23 @@ func (s *AuthService) Register(doctor *models.Doctor, password string) error {
 	return s.repo.CreateDoctor(doctor)
 }
 
-func (s *AuthService) Login(login, password string) (*models.TokenPair, error) {
-	doctor, err := s.repo.FindDoctorByLogin(login)
-	if err != nil {
-		return nil, errors.New("invalid credentials")
-	}
+// func (s *AuthService) Login(login, password string) (*models.TokenPair, error) {
+// 	doctor, err := s.repo.FindDoctorByLogin(login)
+// 	if err != nil {
+// 		return nil, errors.New("invalid credentials")
+// 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(doctor.PasswordHash), []byte(password)); err != nil {
-		return nil, errors.New("invalid credentials")
-	}
+// 	if err := bcrypt.CompareHashAndPassword([]byte(doctor.PasswordHash), []byte(password)); err != nil {
+// 		return nil, errors.New("invalid credentials")
+// 	}
 
-	token, err := s.generateToken(doctor.ID)
-	if err != nil {
-		return nil, err
-	}
+// 	token, err := s.generateToken(doctor.ID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &models.TokenPair{AccessToken: token}, nil
-}
+// 	return &models.TokenPair{AccessToken: token}, nil
+// }
 
 func (s *AuthService) generateToken(doctorID uint) (string, error) {
 	claims := jwt.MapClaims{

@@ -48,38 +48,19 @@ func main() {
 
 	log.Println("Test data generated successfully")
 
-	// Инициализация зависимостей авторизации
-	authRepo := repository.NewAuthRepository(database.GetDB())
 	recepRepo := repository.NewReceptionRepository(database.GetDB())
-	authService := services.NewAuthService(
-		authRepo, // Теперь передаётся указатель
-		"your_jwt_secret_key",
-		24*time.Hour,
-	)
-	// recepService := services.NewReceptionService(recepRepo)
 
-	authHandler := handlers.NewAuthHandler(authService)
+	recepService := services.NewReceptionService(recepRepo)
+
 	recepHandler := handlers.NewReceptionHandler(recepService)
 
-	receptionRepo := repository.NewReceptionRepository(database.DB)
-	patientRepo := repository.NewPatientRepository(database.GetDB())
-
-	smpService := services.NewSmpService(receptionRepo, patientRepo)
-	patientService := services.NewPatientService(patientRepo, log.Default())
-
-	smpHandler := handlers.NewSmpHandler(smpService)
-	patientHandler := handlers.NewPatientHandler(patientService)
 	// Настройка роутера
 	router := gin.Default()
 
 	// Роуты авторизации
-	router.POST("/register", authHandler.Register)
-	router.POST("/login", authHandler.Login)
-	router.POST("/newRecep", recepHandler.CreateReception)
-	router.GET("/main/:doctor_id/receps", recepHandler.GetDoctorReceptions)
+	router.GET("/main/:doctor_id", recepHandler.GetReceptionsByDoctorAndDate)
 
-	router.GET("/spm/:id", smpHandler.GetAllAmbulanceCallings)
-	router.GET("/patients/:id", patientHandler.GetAllPatients)
+	// router.GET("/patients/:id", patientHandler.GetAllPatients)
 
 	// Swagger route
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -101,41 +82,39 @@ func main() {
 }
 
 func GenerateTestData(db *gorm.DB) error {
-	// Очищаем все таблицы (опционально)
-	if err := db.Exec("DROP TABLE IF EXISTS doctors, patients, contact_infos, receptions, allergies, users, sessions CASCADE").Error; err != nil {
-		return err
-	}
+	// ... (предыдущий код очистки и миграции остается без изменений)
 
-	// Автомиграция
-	if err := db.AutoMigrate(
-		&models.Doctor{},
-		&models.Patient{},
-		&models.ContactInfo{},
-		&models.Reception{},
-		&models.Allergy{},
-		&models.User{},
-		&models.Session{},
-	); err != nil {
-		return err
-	}
-
-	// Генерируем тестовых докторов
+	// Добавляем тестовых докторов
 	doctors := []models.Doctor{
 		{
 			FirstName:      "Иван",
-			MiddleName:     "Петрович",
-			LastName:       "Смирнов",
+			MiddleName:     "Иванович",
+			LastName:       "Иванов",
 			Login:          "doctor1",
 			PasswordHash:   "hashed_password_1",
-			Specialization: "Кардиолог",
+			Specialization: "Терапевт",
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
 		},
 		{
-			FirstName:      "Мария",
-			MiddleName:     "Сергеевна",
-			LastName:       "Иванова",
+			FirstName:      "Петр",
+			MiddleName:     "Петрович",
+			LastName:       "Петров",
 			Login:          "doctor2",
 			PasswordHash:   "hashed_password_2",
-			Specialization: "Терапевт",
+			Specialization: "Хирург",
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+		},
+		{
+			FirstName:      "Анна",
+			MiddleName:     "Сергеевна",
+			LastName:       "Смирнова",
+			Login:          "doctor3",
+			PasswordHash:   "hashed_password_3",
+			Specialization: "Кардиолог",
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
 		},
 	}
 
@@ -143,27 +122,22 @@ func GenerateTestData(db *gorm.DB) error {
 		return err
 	}
 
-	// Генерируем тестовых пациентов
+	// Добавляем тестовых пациентов
 	patients := []models.Patient{
 		{
-			FirstName:  "Алексей",
-			MiddleName: "Андреевич",
-			LastName:   "Петров",
-			FullName:   "Петров Алексей Андреевич",
-			BirthDate:  time.Date(1985, 5, 12, 0, 0, 0, 0, time.UTC),
-			IsMale:     true,
-			SNILS:      "123-456-789 00",
-			OMS:        "1234567890123456",
+			FirstName: "Алексей",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		},
 		{
-			FirstName:  "Елена",
-			MiddleName: "Викторовна",
-			LastName:   "Сидорова",
-			FullName:   "Сидорова Елена Викторовна",
-			BirthDate:  time.Date(1990, 8, 25, 0, 0, 0, 0, time.UTC),
-			IsMale:     false,
-			SNILS:      "987-654-321 00",
-			OMS:        "6543210987654321",
+			FirstName: "Мария",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		{
+			FirstName: "Дмитрий",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		},
 	}
 
@@ -171,91 +145,135 @@ func GenerateTestData(db *gorm.DB) error {
 		return err
 	}
 
-	// Контактная информация пациентов
-	contactInfos := []models.ContactInfo{
-		{
-			PatientID: patients[0].ID,
-			Phone:     "+79161234567",
-			Email:     "alexey.petrov@example.com",
-			Address:   "г. Москва, ул. Ленина, д. 10, кв. 5",
-		},
-		{
-			PatientID: patients[1].ID,
-			Phone:     "+79167654321",
-			Email:     "elena.sidorova@example.com",
-			Address:   "г. Москва, пр. Мира, д. 15, кв. 12",
-		},
-	}
-
-	if err := db.Create(&contactInfos).Error; err != nil {
-		return err
-	}
-
-	// Аллергии пациентов
-	allergies := []models.Allergy{
-		{
-			PatientID:   patients[0].ID,
-			Name:        "Пенициллин",
-			Description: "Аллергическая реакция на антибиотики пенициллинового ряда",
-			RecordedAt:  time.Now(),
-		},
-		{
-			PatientID:   patients[1].ID,
-			Name:        "Орехи",
-			Description: "Аллергия на арахис и лесные орехи",
-			RecordedAt:  time.Now(),
-		},
-	}
-
-	if err := db.Create(&allergies).Error; err != nil {
-		return err
-	}
-
-	// Приемы (рецепции)
+	// Создаем записи на прием на разные даты
+	now := time.Now()
 	receptions := []models.Reception{
+		// Прошедшие приемы
 		{
 			DoctorID:        doctors[0].ID,
 			PatientID:       patients[0].ID,
-			Date:            time.Now().Add(24 * time.Hour),
-			Diagnosis:       "Гипертоническая болезнь II стадии",
-			Recommendations: "Принимать препараты по схеме, контроль АД 2 раза в день",
-			IsSMP:           true,
-			Status:          models.StatusScheduled,
-			Address:         "г. Москва, ул. Ленина, д. 10, кв. 5",
+			Date:            now.Add(-72 * time.Hour),
+			Diagnosis:       "ОРВИ",
+			Recommendations: "Постельный режим, обильное питье",
+			Status:          models.StatusCompleted,
+			Address:         "ул. Ленина, д. 10, каб. 101",
+			CreatedAt:       now.Add(-73 * time.Hour),
+			UpdatedAt:       now.Add(-71 * time.Hour),
 		},
 		{
 			DoctorID:        doctors[1].ID,
 			PatientID:       patients[1].ID,
-			Date:            time.Now().Add(48 * time.Hour),
-			Diagnosis:       "Острый бронхит",
-			Recommendations: "Постельный режим, обильное питье, прием назначенных препаратов",
-			IsSMP:           false,
-			Status:          models.StatusScheduled,
-			Address:         "г. Москва, пр. Мира, д. 15, кв. 12",
+			Date:            now.Add(-48 * time.Hour),
+			Diagnosis:       "Перелом руки",
+			Recommendations: "Наложить гипс",
+			Status:          models.StatusCompleted,
+			Address:         "ул. Пушкина, д. 5, каб. 205",
+			CreatedAt:       now.Add(-49 * time.Hour),
+			UpdatedAt:       now.Add(-47 * time.Hour),
+		},
+		{
+			DoctorID:        doctors[2].ID,
+			PatientID:       patients[2].ID,
+			Date:            now.Add(-24 * time.Hour),
+			Diagnosis:       "Гипертония",
+			Recommendations: "Контроль давления, диета",
+			Status:          models.StatusCompleted,
+			Address:         "ул. Гагарина, д. 15, каб. 302",
+			CreatedAt:       now.Add(-25 * time.Hour),
+			UpdatedAt:       now.Add(-23 * time.Hour),
+		},
+
+		// Сегодняшние приемы
+		{
+			DoctorID:        doctors[0].ID,
+			PatientID:       patients[1].ID,
+			Date:            time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, now.Location()),
+			Diagnosis:       "Гастрит",
+			Recommendations: "Диета, антациды",
+			Status:          models.StatusCompleted,
+			Address:         "ул. Ленина, д. 10, каб. 101",
+			CreatedAt:       now.Add(-2 * time.Hour),
+			UpdatedAt:       now.Add(-1 * time.Hour),
+		},
+		{
+			DoctorID:  doctors[1].ID,
+			PatientID: patients[2].ID,
+			Date:      time.Date(now.Year(), now.Month(), now.Day(), 14, 30, 0, 0, now.Location()),
+			Status:    models.StatusScheduled,
+			Address:   "ул. Пушкина, д. 5, каб. 205",
+			CreatedAt: now.Add(-3 * time.Hour),
+			UpdatedAt: now.Add(-2 * time.Hour),
+		},
+
+		// Будущие приемы (на разные дни)
+		{
+			DoctorID:  doctors[0].ID,
+			PatientID: patients[2].ID,
+			Date:      now.Add(24 * time.Hour),
+			Status:    models.StatusScheduled,
+			Address:   "ул. Ленина, д. 10, каб. 101",
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			DoctorID:  doctors[1].ID,
+			PatientID: patients[0].ID,
+			Date:      now.Add(48 * time.Hour),
+			Status:    models.StatusScheduled,
+			Address:   "ул. Пушкина, д. 5, каб. 205",
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			DoctorID:  doctors[2].ID,
+			PatientID: patients[1].ID,
+			Date:      now.Add(72 * time.Hour),
+			Status:    models.StatusScheduled,
+			Address:   "ул. Гагарина, д. 15, каб. 302",
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			DoctorID:  doctors[0].ID,
+			PatientID: patients[1].ID,
+			Date:      now.Add(96 * time.Hour),
+			Status:    models.StatusScheduled,
+			Address:   "ул. Ленина, д. 10, каб. 101",
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			DoctorID:  doctors[2].ID,
+			PatientID: patients[0].ID,
+			Date:      now.Add(120 * time.Hour),
+			Status:    models.StatusScheduled,
+			Address:   "ул. Гагарина, д. 15, каб. 302",
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+
+		// Отмененные приемы
+		{
+			DoctorID:  doctors[1].ID,
+			PatientID: patients[2].ID,
+			Date:      now.Add(-12 * time.Hour),
+			Status:    models.StatusCancelled,
+			Address:   "ул. Пушкина, д. 5, каб. 205",
+			CreatedAt: now.Add(-24 * time.Hour),
+			UpdatedAt: now.Add(-12 * time.Hour),
+		},
+		{
+			DoctorID:  doctors[2].ID,
+			PatientID: patients[0].ID,
+			Date:      now.Add(36 * time.Hour),
+			Status:    models.StatusCancelled,
+			Address:   "ул. Гагарина, д. 15, каб. 302",
+			CreatedAt: now.Add(-48 * time.Hour),
+			UpdatedAt: now.Add(-12 * time.Hour),
 		},
 	}
 
 	if err := db.Create(&receptions).Error; err != nil {
-		return err
-	}
-
-	// Тестовые пользователи для авторизации
-	users := []models.User{
-		{
-			Login:        "admin",
-			PasswordHash: "$2a$10$XvgW8sK9V6vU5Jh5Z5n5Be5J5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z", // хэш для "admin123"
-			Email:        "admin@example.com",
-			Role:         "admin",
-		},
-		{
-			Login:        "user1",
-			PasswordHash: "$2a$10$XvgW8sK9V6vU5Jh5Z5n5Be5J5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z", // хэш для "user123"
-			Email:        "user1@example.com",
-			Role:         "user",
-		},
-	}
-
-	if err := db.Create(&users).Error; err != nil {
 		return err
 	}
 

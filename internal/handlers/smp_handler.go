@@ -34,15 +34,15 @@ func (h *SmpHandlers) GetAllAmbulanceCallings(c *gin.Context) {
 }
 
 func (h *SmpHandlers) GetEmergencyReception(c *gin.Context) {
-	receptionID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid doctor ID format"})
-		return
-	}
-	receptions, err := h.smpService.GetDetailsCallings(uint(receptionID))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order request"})
-		return
-	}
-	c.JSON(http.StatusOK, receptions)
+	// receptionID, err := strconv.Atoi(c.Param("id"))
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid doctor ID format"})
+	// 	return
+	// }
+	// receptions, err := h.smpService.GetDetailsCallings(uint(receptionID))
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order request"})
+	// 	return
+	// }
+	// c.JSON(http.StatusOK, receptions)
 }
