@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/AlexanderMorozov1919/mobileapp/internal/models"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/repository"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"

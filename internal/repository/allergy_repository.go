@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/AlexanderMorozov1919/mobileapp/internal/models"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"gorm.io/gorm"
 )
 

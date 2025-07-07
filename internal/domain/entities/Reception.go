@@ -1,8 +1,9 @@
 package entities
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type ReceptionStatus string

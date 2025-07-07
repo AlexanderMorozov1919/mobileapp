@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	"github.com/AlexanderMorozov1919/mobileapp/internal/models"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	_ "github.com/AlexanderMorozov1919/mobileapp/internal_v2/domain/entities"
 )
 
