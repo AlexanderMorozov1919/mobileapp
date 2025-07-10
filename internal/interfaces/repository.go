@@ -123,6 +123,5 @@ type PatientsAllergyRepository interface {
 }
 
 type AuthRepository interface {
-	GetByLogin(ctx context.Context, login string) (*entities.User, error)
-	Create(ctx context.Context, user *entities.User) error
+	GetByLogin(ctx context.Context, login string) (*entities.Doctor, error)
 }

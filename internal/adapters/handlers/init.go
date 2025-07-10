@@ -47,7 +47,6 @@ func ProvideRouter(h *Handler) http.Handler {
 	// Группа аутентификации
 	authGroup := r.Group("/auth")
 	{
-		authGroup.POST("/register", gin.WrapF(authHandler.RegisterDoctor))
 		authGroup.POST("/login", gin.WrapF(authHandler.LoginDoctor))
 	}
 

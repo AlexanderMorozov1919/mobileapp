@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
-	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -18,8 +17,7 @@ type AuthUsecase struct {
 }
 
 type AuthRepository interface {
-	GetByLogin(ctx context.Context, login string) (*entities.User, error)
-	Create(ctx context.Context, user *entities.User) error
+	GetByLogin(ctx context.Context, login string) (*entities.Doctor, error)
 }
 
 func NewAuthUsecase(authRepo interfaces.Repository, secretKey string) *AuthUsecase {
@@ -27,39 +25,6 @@ func NewAuthUsecase(authRepo interfaces.Repository, secretKey string) *AuthUseca
 		authRepo:  authRepo,
 		secretKey: secretKey,
 	}
-}
-
-func (uc *AuthUsecase) RegisterDoctor(ctx context.Context, req models.DoctorRegisterRequest) (*models.DoctorResponse, error) {
-	if req.Password != req.PasswordConfirm {
-		return nil, errors.New("passwords do not match")
-	}
-
-	existing, err := uc.authRepo.GetByLogin(ctx, req.Login)
-	if err == nil && existing.ID != 0 {
-		return nil, errors.New("doctor with this login already exists")
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-
-	user := &entities.User{
-		FullName:       req.FullName,
-		Specialization: req.Specialization,
-		Login:          req.Login,
-		PasswordHash:   string(hashedPassword),
-	}
-
-	if err := uc.authRepo.Create(ctx, user); err != nil {
-		return nil, err
-	}
-
-	return &models.DoctorResponse{
-		ID:             user.ID,
-		FullName:       user.FullName,
-		Specialization: user.Specialization,
-	}, nil
 }
 
 func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) (string, error) {
