@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/adapters/handlers"
@@ -10,7 +11,9 @@ import (
 	"github.com/AlexanderMorozov1919/mobileapp/internal/config"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/services"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/usecases"
+	"github.com/AlexanderMorozov1919/mobileapp/migrations"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 func New() *fx.App {
@@ -24,6 +27,7 @@ func New() *fx.App {
 		ServiceModule,
 		UsecaseModule,
 		HttpServerModule,
+		SeedModule,
 	)
 }
 
@@ -39,6 +43,16 @@ var AuthModule = fx.Module("auth_module",
 		},
 		usecases.NewAuthUsecase,
 	),
+)
+
+var SeedModule = fx.Module("seed_module",
+	fx.Invoke(func(db *gorm.DB) {
+		if err := migrations.SeedTestDoctors(db); err != nil {
+			log.Printf("Warning: failed to seed test doctors: %v", err)
+		} else {
+			log.Println("Test doctors seeded successfully")
+		}
+	}),
 )
 
 /*
