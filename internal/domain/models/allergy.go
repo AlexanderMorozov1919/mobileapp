@@ -5,3 +5,6 @@ type AddAllergyRequest struct {
 	AllergyID   uint
 	Description string
 }
+type AllergyResponse struct {
+	Name string
+}

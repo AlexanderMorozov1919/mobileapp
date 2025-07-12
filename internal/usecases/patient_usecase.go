@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"fmt"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
@@ -17,10 +18,16 @@ func NewPatientUsecase(repo interfaces.PatientRepository) interfaces.PatientUsec
 	return &PatientUsecase{repo: repo}
 }
 
-func (u *PatientUsecase) CreatPatient(input *models.CreatePatientRequest) (entities.Patient, *errors.AppError) {
+func (u *PatientUsecase) CreatePatient(input *models.CreatePatientRequest) (entities.Patient, *errors.AppError) {
+	parsedTime, err := time.Parse("2006-01-02", input.BirthDate)
+	if err != nil {
+		fmt.Println("Ошибка парсинга даты:", err)
+		return entities.Patient{}, errors.NewAppError(errors.InvalidDataCode, "Ошибка парсинга даты:", err, false)
+	}
+
 	patient := entities.Patient{
 		FullName:  input.FullName,
-		BirthDate: input.BirthDate,
+		BirthDate: parsedTime,
 		IsMale:    input.IsMale,
 	}
 
@@ -50,11 +57,17 @@ func (u *PatientUsecase) GetPatientByID(id uint) (entities.Patient, *errors.AppE
 }
 
 func (u *PatientUsecase) UpdatePatient(input *models.UpdatePatientRequest) (entities.Patient, *errors.AppError) {
+	parsedTime, err := time.Parse("2006-01-02", input.BirthDate)
+	if err != nil {
+		fmt.Println("Ошибка парсинга даты:", err)
+		return entities.Patient{}, errors.NewAppError(errors.InvalidDataCode, "Ошибка парсинга даты:", err, false)
+	}
+
 	updateMap := map[string]interface{}{
-		"id":         input.ID,        // Может быть nil
-		"birthdate":  input.BirthDate, // Может быть nil
-		"fullname":   input.FullName,  // Может быть nil
-		"updated_at": time.Now(),      // Всегда обновляем
+		"id":         input.ID,
+		"birth_date": parsedTime,
+		"full_name":  input.FullName,
+		"updated_at": time.Now(),
 	}
 
 	updatedPatientId, err := u.repo.UpdatePatient(input.ID, updateMap)
@@ -72,8 +85,8 @@ func (u *PatientUsecase) UpdatePatient(input *models.UpdatePatientRequest) (enti
 }
 
 func (u *PatientUsecase) DeletePatient(id uint) *errors.AppError {
-	if err := u.repo.DeletePatient(id); err.Err != nil {
-		return err
+	if err := u.repo.DeletePatient(id); err != nil {
+		return errors.NewAppError(errors.InternalServerErrorCode, "удаление пациента", err, false)
 	}
 	return nil
 }

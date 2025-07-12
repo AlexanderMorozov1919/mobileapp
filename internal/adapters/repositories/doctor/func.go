@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (r *DoctorRepository) CreateDoctor(doctor *entities.Doctor) (uint, *errors.AppError) {
+func (r *DoctorRepository) CreateDoctor(doctor entities.Doctor) (uint, error) {
 	op := "repo.Doctor.CreateDoctor"
 
 	err := r.db.Clauses(clause.Returning{}).Create(&doctor).Error
@@ -16,7 +16,7 @@ func (r *DoctorRepository) CreateDoctor(doctor *entities.Doctor) (uint, *errors.
 	return doctor.ID, nil
 }
 
-func (r *DoctorRepository) UpdateDoctor(id uint, updateMap map[string]interface{}) (uint, *errors.AppError) {
+func (r *DoctorRepository) UpdateDoctor(id uint, updateMap map[string]interface{}) (uint, error) {
 	op := "repo.BookingMaterial.UpdateBookingMaterial"
 
 	var updatedDoctor entities.Doctor
@@ -37,11 +37,11 @@ func (r *DoctorRepository) UpdateDoctor(id uint, updateMap map[string]interface{
 	return updatedDoctor.ID, nil
 }
 
-func (r *DoctorRepository) DeleteDoctor(id uint) *errors.AppError {
+func (r *DoctorRepository) DeleteDoctor(id uint) error {
 	return errors.NewDBError("Delete doctor error", r.db.Delete(&entities.Doctor{}, id).Error)
 }
 
-func (r *DoctorRepository) GetDoctorByID(id uint) (entities.Doctor, *errors.AppError) {
+func (r *DoctorRepository) GetDoctorByID(id uint) (entities.Doctor, error) {
 	var doctor entities.Doctor
 	if err := r.db.First(&doctor, id).Error; err != nil {
 		return entities.Doctor{}, errors.NewDBError("Error Get Doctor By Id", err)
@@ -49,7 +49,7 @@ func (r *DoctorRepository) GetDoctorByID(id uint) (entities.Doctor, *errors.AppE
 	return doctor, nil
 }
 
-func (r *DoctorRepository) GetDoctorByLogin(login string) (entities.Doctor, *errors.AppError) {
+func (r *DoctorRepository) GetDoctorByLogin(login string) (entities.Doctor, error) {
 	var doctor entities.Doctor
 	if err := r.db.Where("login = ?", login).First(&doctor).Error; err != nil {
 		return entities.Doctor{}, errors.NewDBError("Error Get Doctor By Login", err)
@@ -57,7 +57,7 @@ func (r *DoctorRepository) GetDoctorByLogin(login string) (entities.Doctor, *err
 	return doctor, nil
 }
 
-func (r *DoctorRepository) GetDoctorName(id uint) (string, *errors.AppError) {
+func (r *DoctorRepository) GetDoctorName(id uint) (string, error) {
 	var doctor entities.Doctor
 	if err := r.db.Select("full_name").First(&doctor, id).Error; err != nil {
 		return "", errors.NewDBError("Error Get Doctor Name", err)
@@ -65,7 +65,7 @@ func (r *DoctorRepository) GetDoctorName(id uint) (string, *errors.AppError) {
 	return doctor.FullName, nil
 }
 
-func (r *DoctorRepository) GetDoctorSpecialization(id uint) (string, *errors.AppError) {
+func (r *DoctorRepository) GetDoctorSpecialization(id uint) (string, error) {
 	var doctor entities.Doctor
 	if err := r.db.Select("specialization").First(&doctor, id).Error; err != nil {
 		return "", errors.NewDBError("Error Get Doctor Specialization", err)
@@ -73,7 +73,7 @@ func (r *DoctorRepository) GetDoctorSpecialization(id uint) (string, *errors.App
 	return doctor.Specialization, nil
 }
 
-func (r *DoctorRepository) GetDoctorPassHash(id uint) (string, *errors.AppError) {
+func (r *DoctorRepository) GetDoctorPassHash(id uint) (string, error) {
 	var doctor entities.Doctor
 	if err := r.db.Select("password_hash").First(&doctor, id).Error; err != nil {
 		return "", errors.NewDBError("Error Get Doctor PassHash", err)

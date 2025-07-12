@@ -12,25 +12,27 @@ type UseCases struct {
 	interfaces.ContactInfoUsecase
 	interfaces.DoctorUsecase
 	interfaces.EmergencyReceptionUsecase
-	interfaces.EmergencyReceptionMedServicesUsecase
 	interfaces.MedServiceUsecase
 	interfaces.PatientUsecase
 	interfaces.PersonalInfoUsecase
-	interfaces.ReceptionUsecase
+	interfaces.ReceptionHospitalUsecase
+	interfaces.ReceptionSmpUsecase
+	interfaces.MedCardUsecase
 }
 
 func NewUsecases(r interfaces.Repository, s interfaces.Service, conf *config.Config) interfaces.Usecases {
 
 	return &UseCases{
-		NewAllergyUsecase(r, r, r),
+		NewAllergyUsecase(r, r),
 		NewContactInfoUsecase(r),
 		NewDoctorUsecase(r),
 		NewEmergencyReceptionUsecase(r),
-		NewEmergencyReceptionMedServicesUsecase(r),
-		NewMedServiceUsecase(r, r),
+		NewMedServiceUsecase(r),
 		NewPatientUsecase(r),
 		NewPersonalInfoUsecase(r),
-		NewReceptionUsecase(r),
+		NewReceptionHospitalUsecase(r),
+		NewReceptionSmpUsecase(r),
+		NewMedCardUsecase(r, r, r, r),
 	}
 
 }

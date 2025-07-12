@@ -4,33 +4,52 @@ import (
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
+	_ "github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
 )
 
 type AllergyUsecase struct {
-	allergyRepo        interfaces.AllergyRepository
-	patientRepo        interfaces.PatientRepository
-	patientAllergyRepo interfaces.PatientsAllergyRepository
+	allergyRepo interfaces.AllergyRepository
+	patientRepo interfaces.PatientRepository
+}
+
+func (a AllergyUsecase) AddAllergyToPatient(patientID, allergyID uint, description string) (entities.Allergy, *errors.AppError) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a AllergyUsecase) GetAllergyByPatientID(patientID uint) ([]entities.Allergy, *errors.AppError) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a AllergyUsecase) RemoveAllergyFromPatient(patientID, allergyID uint) *errors.AppError {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a AllergyUsecase) UpdateAllergyDescription(patientID, allergyID uint, description string) (entities.Allergy, *errors.AppError) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewAllergyUsecase(repo interfaces.AllergyRepository,
-	patientRepo interfaces.PatientRepository,
-	patientAllergyRepo interfaces.PatientsAllergyRepository) interfaces.AllergyUsecase {
+	patientRepo interfaces.PatientRepository) interfaces.AllergyUsecase {
 	return &AllergyUsecase{
-		allergyRepo:        repo,
-		patientRepo:        patientRepo,
-		patientAllergyRepo: patientAllergyRepo,
+		allergyRepo: repo,
+		patientRepo: patientRepo,
 	}
 }
 
-func (u *AllergyUsecase) AddAllergyToPatient(patientID, allergyID uint, description string) (entities.PatientsAllergy, *errors.AppError) {
+/*
+func (u *AllergyUsecase) AddAllergyToPatient(patientID, allergyID uint, description string) (entities.Allergy, *errors.AppError) {
 	// Проверяем существование пациента
 	if _, err := u.patientRepo.GetPatientByID(patientID); err != nil {
-		return entities.PatientsAllergy{}, errors.NewAppError(500, "patient not found", errors.ErrDataNotFound, true)
+		return entities.Allergy{}, errors.NewAppError(500, "patient not found", errors.ErrDataNotFound, true)
 	}
 
 	// Проверяем существование аллергии
 	if _, err := u.allergyRepo.GetPatientAllergiesByID(allergyID); err != nil {
-		return entities.PatientsAllergy{}, errors.NewAppError(500, "allergy not found", errors.ErrDataNotFound, true)
+		return entities.Allergy{}, errors.NewAppError(500, "allergy not found", errors.ErrDataNotFound, true)
 	}
 
 	// Проверяем, не добавлена ли уже эта аллергия пациенту
@@ -44,7 +63,7 @@ func (u *AllergyUsecase) AddAllergyToPatient(patientID, allergyID uint, descript
 	}
 
 	// Создаем связь
-	allergy := entities.PatientsAllergy{
+	allergy := entities.Allergy{
 		PatientID:   patientID,
 		AllergyID:   allergyID,
 		Description: description,
@@ -71,9 +90,11 @@ func (u *AllergyUsecase) GetAllergyByPatientID(patientID uint) ([]entities.Aller
 
 	return allergies, nil
 
-	*/
+
 	return nil, nil
 }
+
+
 
 func (u *AllergyUsecase) RemoveAllergyFromPatient(patientID, allergyID uint) *errors.AppError {
 	// Проверяем существование связи
@@ -98,7 +119,7 @@ func (u *AllergyUsecase) UpdateAllergyDescription(patientID, allergyID uint, des
 	panic("implement me")
 }
 
-/*
+
 func (u *AllergyUsecase) UpdateAllergyDescription(patientID, allergyID uint, description string) (entities.PatientsAllergy, *errors.AppError) {
 	/* Получаем существующую связь
 	relation, err := u.patientAllergyRepo.GetPatientsAllergyByAllergyID(patientID)

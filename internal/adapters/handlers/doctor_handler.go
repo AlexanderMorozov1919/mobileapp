@@ -63,12 +63,13 @@ func (h *Handler) GetDoctorByID(c *gin.Context) {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "parameter 'id' must be an integer", false)
 		return
 	}
-
+	log.Println("before get doc usecase")
 	doctor, eerr := h.usecase.GetDoctorByID(uint(id))
-	if eerr.Err != nil {
+	if eerr != nil {
 		h.ErrorResponse(c, eerr.Err, eerr.Code, eerr.Message, eerr.IsUserFacing)
 		return
 	}
+	log.Println("after get doc usecase")
 
 	h.ResultResponse(c, "Success doctor get", Object, doctor)
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
@@ -60,4 +61,17 @@ func (h *Handler) InternalError(c *gin.Context, err error) {
 
 func (h *Handler) NotFound(c *gin.Context, err error) {
 	h.ErrorResponse(c, err, http.StatusNotFound, errors.NotFound, true)
+}
+
+// Auth
+func RespondWithError(w http.ResponseWriter, code int, message string) {
+	RespondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }

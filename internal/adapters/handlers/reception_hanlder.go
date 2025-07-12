@@ -102,3 +102,57 @@ package handlers
 
 // 	h.ResultResponse(c, "Success reception get", apiresp.Object, reception)
 // }
+
+// GetReceptionsByDoctorAndDate godoc
+// @Summary Get receptions by doctor and date
+// @Description Get paginated list of receptions for specific doctor and date
+// @Tags receptions
+// @Accept json
+// @Produce json
+// @Param doctor_id path int true "Doctor ID"
+// @Param date query string false "Date in YYYY-MM-DD format"
+// @Param page query int false "Page number" default(1)
+// @Success 200 {array} models.ReceptionShortResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /receptions/doctor/{doctor_id} [get]
+// func (h *Handler) GetReceptionsByDoctorAndDate(c *gin.Context) {
+// 	// Получаем doctor_id из URL
+// 	doctorIDStr := c.Param("doctor_id")
+// 	doctorID, err := strconv.ParseUint(doctorIDStr, 10, 32)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid doctor ID"})
+// 		return
+// 	}
+
+// 	// Получаем дату из query параметров
+// 	dateStr := c.Query("date")
+// 	var date time.Time
+// 	if dateStr != "" {
+// 		date, err = time.Parse("2006-01-02", dateStr)
+// 		if err != nil {
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format, use YYYY-MM-DD"})
+// 			return
+// 		}
+// 	} else {
+// 		// Если дата не указана, используем текущую дату
+// 		date = time.Now()
+// 	}
+
+// 	// Получаем номер страницы из query параметров
+// 	pageStr := c.DefaultQuery("page", "1")
+// 	page, err := strconv.Atoi(pageStr)
+// 	if err != nil || page < 1 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "page must be a positive integer"})
+// 		return
+// 	}
+
+// 	// Вызываем usecase
+// 	receptions, err := h.usecase.GetReceptionsByDoctorAndDate(uint(doctorID), date, page)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, receptions)
+// }

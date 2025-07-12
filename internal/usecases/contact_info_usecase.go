@@ -1,7 +1,11 @@
 package usecases
 
 import (
+	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
+	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type ContactInfoUsecase struct {
@@ -12,16 +16,37 @@ func NewContactInfoUsecase(repo interfaces.ContactInfoRepository) interfaces.Con
 	return &ContactInfoUsecase{repo: repo}
 }
 
-// func (u *ContactInfoUsecase) GetByPatientID(patientID uint) (entities.ContactInfo, *errors.AppError) {
-// 	info, err := u.repo.GetByPatientID(patientID)
-// 	if err != nil {
-// 		if error.Is(err, gorm.ErrRecordNotFound) {
-// 			return entities.ContactInfo{}, errors.NewNotFoundError("contact info not found")
-// 		}
-// 		return entities.ContactInfo{}, errors.NewDBError("failed to get contact info", err)
-// 	}
-// 	return *info, nil
-// }
+func (u ContactInfoUsecase) CreateContactInfo(input *models.CreateContactInfoRequest) (entities.ContactInfo, *errors.AppError) {
+	contact_info := entities.ContactInfo{
+		PatientID: input.PatientID,
+		Phone:     input.Phone,
+		Email:     input.Email,
+		Address:   input.Address,
+	}
+
+	createdContactInfoId, err := u.repo.CreateContactInfo(contact_info)
+	if err != nil {
+		return entities.ContactInfo{}, errors.NewAppError(errors.InternalServerErrorCode, errors.InternalServerError, err, false)
+	}
+
+	createdContactInfo, err := u.repo.GetContactInfoByID(createdContactInfoId)
+	if err != nil {
+		return entities.ContactInfo{}, errors.NewAppError(errors.InternalServerErrorCode, errors.InternalServerError, err, false)
+	}
+
+	return createdContactInfo, nil
+}
+
+func (u *ContactInfoUsecase) GetContactInfoByPatientID(patientID uint) (entities.ContactInfo, *errors.AppError) {
+	info, err := u.repo.GetContactInfoByPatientID(patientID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.ContactInfo{}, errors.NewDBError("contact info not found", err)
+		}
+		return entities.ContactInfo{}, errors.NewDBError("failed to get contact info", err)
+	}
+	return info, nil
+}
 
 // func (u *ContactInfoUsecase) Update(input models.UpdateContactInfoRequest) (entities.ContactInfo, *errors.AppError) {
 // 	info, err := u.repo.GetByPatientID(input.PatientID)

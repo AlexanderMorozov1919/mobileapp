@@ -1,4 +1,4 @@
-package reception
+package receptionHospital
 
 import (
 	"time"
@@ -7,40 +7,40 @@ import (
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 )
 
-func (r *ReceptionRepositoryImpl) CreateReception(reception *entities.Reception) error {
+func (r *ReceptionHospitalRepositoryImpl) CreateReceptionHospital(reception *entities.ReceptionHospital) error {
 	return r.db.Create(reception).Error
 }
 
-func (r *ReceptionRepositoryImpl) UpdateReception(reception *entities.Reception) error {
+func (r *ReceptionHospitalRepositoryImpl) UpdateReceptionHospital(reception *entities.ReceptionHospital) error {
 	return r.db.Save(reception).Error
 }
 
-func (r *ReceptionRepositoryImpl) DeleteReception(id uint) error {
-	return r.db.Delete(&entities.Reception{}, id).Error
+func (r *ReceptionHospitalRepositoryImpl) DeleteReceptionHospital(id uint) error {
+	return r.db.Delete(&entities.ReceptionHospital{}, id).Error
 }
 
-func (r *ReceptionRepositoryImpl) GetReceptionByID(id uint) (*entities.Reception, error) {
-	var reception entities.Reception
+func (r *ReceptionHospitalRepositoryImpl) GetReceptionHospitalByID(id uint) (*entities.ReceptionHospital, error) {
+	var reception entities.ReceptionHospital
 	if err := r.db.First(&reception, id).Error; err != nil {
 		return nil, err
 	}
 	return &reception, nil
 }
 
-func (r *ReceptionRepositoryImpl) GetReceptionByDoctorID(doctorID uint) ([]entities.Reception, error) {
-	var receptions []entities.Reception
+func (r *ReceptionHospitalRepositoryImpl) GetReceptionHospitalByDoctorID(doctorID uint) ([]entities.ReceptionHospital, error) {
+	var receptions []entities.ReceptionHospital
 	err := r.db.Where("doctor_id = ?", doctorID).Find(&receptions).Error
 	return receptions, err
 }
 
-func (r *ReceptionRepositoryImpl) GetReceptionByPatientID(patientID uint) ([]entities.Reception, error) {
-	var receptions []entities.Reception
+func (r *ReceptionHospitalRepositoryImpl) GetReceptionHospitalByPatientID(patientID uint) ([]entities.ReceptionHospital, error) {
+	var receptions []entities.ReceptionHospital
 	err := r.db.Where("patient_id = ?", patientID).Find(&receptions).Error
 	return receptions, err
 }
 
-func (r *ReceptionRepositoryImpl) GetReceptionByDateRange(start, end time.Time) ([]entities.Reception, error) {
-	var receptions []entities.Reception
+func (r *ReceptionHospitalRepositoryImpl) GetReceptionsHospitalByDateRange(start, end time.Time) ([]entities.ReceptionHospital, error) {
+	var receptions []entities.ReceptionHospital
 	err := r.db.Where("date BETWEEN ? AND ?", start, end).Find(&receptions).Error
 	return receptions, err
 }
@@ -71,7 +71,7 @@ func getOrderByStatusAndDate() string {
     `
 }
 
-func (r *ReceptionRepositoryImpl) GetReceptionsByDoctorAndDate(doctorID uint, date time.Time, page, perPage int) ([]models.ReceptionShortResponse, error) {
+func (r *ReceptionHospitalRepositoryImpl) GetReceptionsHospitalByDoctorAndDate(doctorID uint, date time.Time, page, perPage int) ([]models.ReceptionShortResponse, error) {
 	var response []struct {
 		Date        time.Time
 		Status      string
@@ -83,7 +83,7 @@ func (r *ReceptionRepositoryImpl) GetReceptionsByDoctorAndDate(doctorID uint, da
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	err := r.db.Model(&entities.Reception{}).
+	err := r.db.Model(&entities.ReceptionHospital{}).
 		Select(`
             receptions.date,
             receptions.status,
