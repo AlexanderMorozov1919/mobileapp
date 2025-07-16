@@ -6,3 +6,6 @@
 __debug_bin
 .vscode/
 .idea/
+
+# Логи
+logs/

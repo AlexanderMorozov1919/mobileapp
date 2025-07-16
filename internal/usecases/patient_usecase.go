@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"fmt"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
@@ -10,17 +11,25 @@ import (
 )
 
 type PatientUsecase struct {
-	repo interfaces.PatientRepository
+	repo          interfaces.PatientRepository
+	FilterBuilder interfaces.FilterBuilderService
 }
 
-func NewPatientUsecase(repo interfaces.PatientRepository) interfaces.PatientUsecase {
-	return &PatientUsecase{repo: repo}
+func NewPatientUsecase(repo interfaces.PatientRepository, s interfaces.Service) interfaces.PatientUsecase {
+	return &PatientUsecase{repo: repo,
+		FilterBuilder: s}
 }
 
-func (u *PatientUsecase) CreatPatient(input *models.CreatePatientRequest) (entities.Patient, *errors.AppError) {
+func (u *PatientUsecase) CreatePatient(input *models.CreatePatientRequest) (entities.Patient, *errors.AppError) {
+	parsedTime, err := time.Parse("2006-01-02", input.BirthDate)
+	if err != nil {
+		fmt.Println("Ошибка парсинга даты:", err)
+		return entities.Patient{}, errors.NewAppError(errors.InvalidDataCode, "Ошибка парсинга даты:", err, false)
+	}
+
 	patient := entities.Patient{
 		FullName:  input.FullName,
-		BirthDate: input.BirthDate,
+		BirthDate: parsedTime,
 		IsMale:    input.IsMale,
 	}
 
@@ -50,11 +59,17 @@ func (u *PatientUsecase) GetPatientByID(id uint) (entities.Patient, *errors.AppE
 }
 
 func (u *PatientUsecase) UpdatePatient(input *models.UpdatePatientRequest) (entities.Patient, *errors.AppError) {
+	parsedTime, err := time.Parse("2006-01-02", input.BirthDate)
+	if err != nil {
+		fmt.Println("Ошибка парсинга даты:", err)
+		return entities.Patient{}, errors.NewAppError(errors.InvalidDataCode, "Ошибка парсинга даты:", err, false)
+	}
+
 	updateMap := map[string]interface{}{
-		"id":         input.ID,        // Может быть nil
-		"birthdate":  input.BirthDate, // Может быть nil
-		"fullname":   input.FullName,  // Может быть nil
-		"updated_at": time.Now(),      // Всегда обновляем
+		"id":         input.ID,
+		"birth_date": parsedTime,
+		"full_name":  input.FullName,
+		"updated_at": time.Now(),
 	}
 
 	updatedPatientId, err := u.repo.UpdatePatient(input.ID, updateMap)
@@ -72,8 +87,47 @@ func (u *PatientUsecase) UpdatePatient(input *models.UpdatePatientRequest) (enti
 }
 
 func (u *PatientUsecase) DeletePatient(id uint) *errors.AppError {
-	if err := u.repo.DeletePatient(id); err.Err != nil {
-		return err
+	if err := u.repo.DeletePatient(id); err != nil {
+		return errors.NewAppError(errors.InternalServerErrorCode, "удаление пациента", err, false)
 	}
 	return nil
+}
+
+func (u *PatientUsecase) GetAllPatients(limit, offset int, filter string) ([]entities.Patient, *errors.AppError) {
+	var queryFilter string
+	var parameters []interface{}
+
+	// Статические поля модели (имя таблицы/колонки и их типы)
+	entityFields, err := getFieldTypes(entities.Patient{})
+	if err != nil {
+		return nil, errors.NewAppError(errors.InternalServerErrorCode, errors.InternalServerError, err, false)
+	}
+
+	// Парсим фильтр, если он передан
+	if len(filter) > 0 {
+		subQuery, params, err := u.FilterBuilder.ParseFilterString(filter, entityFields)
+		if err != nil {
+			return nil, errors.NewAppError(
+				errors.InvalidDataCode,
+				fmt.Sprintf("invalid filter syntax: %s", err.Error()),
+				nil,
+				false,
+			)
+		}
+		queryFilter = subQuery
+		parameters = params
+	}
+
+	// Получение пациентов
+	patients, err := u.repo.GetAllPatients(limit, offset, queryFilter, parameters)
+	if err != nil {
+		return nil, errors.NewAppError(
+			errors.InternalServerErrorCode,
+			"failed to get patients",
+			err,
+			true,
+		)
+	}
+
+	return patients, nil
 }

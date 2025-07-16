@@ -14,7 +14,7 @@ type Config struct {
 	Enabled    bool   // Включено ли логирование
 	Level      string // DEBUG, INFO, WARN, ERROR
 	LogsDir    string // Директория для логов
-	SavingDays int    // Сколько дней хранить логи
+	SavingDays uint   // Сколько дней хранить логи
 }
 
 type Logger struct {
@@ -32,7 +32,6 @@ func NewLogger(cfg *Config, prefix, version string) *Logger {
 		version: version,
 	}
 
-	// Настройка вывода
 	var output io.Writer = os.Stdout
 	if cfg.Enabled && cfg.LogsDir != "" {
 		if err := os.MkdirAll(cfg.LogsDir, 0755); err == nil {
@@ -46,12 +45,21 @@ func NewLogger(cfg *Config, prefix, version string) *Logger {
 
 	l.logger = log.New(output, "", log.LstdFlags)
 
-	// Запуск очистки старых логов
 	if cfg.SavingDays > 0 {
 		go l.cleanOldLogs()
 	}
 
 	return l
+}
+
+func (l *Logger) WithPrefix(prefix string) *Logger {
+	return &Logger{
+		config:  l.config,
+		logger:  l.logger,
+		file:    l.file,
+		prefix:  l.prefix + "[" + prefix + "] ",
+		version: l.version,
+	}
 }
 
 func (l *Logger) cleanOldLogs() {
@@ -62,7 +70,7 @@ func (l *Logger) cleanOldLogs() {
 			continue
 		}
 
-		cutoff := time.Now().AddDate(0, 0, -l.config.SavingDays)
+		cutoff := time.Now().AddDate(0, 0, int(-l.config.SavingDays))
 		for _, file := range files {
 			if info, err := file.Info(); err == nil && !file.IsDir() && info.ModTime().Before(cutoff) {
 				if err := os.Remove(filepath.Join(l.config.LogsDir, file.Name())); err != nil {
@@ -74,14 +82,12 @@ func (l *Logger) cleanOldLogs() {
 }
 
 func (l *Logger) log(level, msg string, fields ...interface{}) {
-	if !l.shouldLog(level) {
+	if !l.ShouldLog(level) {
 		return
 	}
 
-	// Формируем основное сообщение
 	message := fmt.Sprintf("[%s] %s%s", level, l.prefix, msg)
 
-	// Добавляем поля
 	var builder strings.Builder
 	builder.WriteString(message)
 	for i := 0; i < len(fields); i += 2 {
@@ -93,16 +99,14 @@ func (l *Logger) log(level, msg string, fields ...interface{}) {
 		builder.WriteString(fmt.Sprintf(" %s=%s", key, val))
 	}
 
-	// Выводим лог
 	l.logger.Println(builder.String())
 }
 
-func (l *Logger) shouldLog(level string) bool {
+func (l *Logger) ShouldLog(level string) bool {
 	if !l.config.Enabled {
 		return false
 	}
 
-	// Определяем уровни логирования
 	levels := map[string]int{
 		"DEBUG": 4,
 		"INFO":  3,

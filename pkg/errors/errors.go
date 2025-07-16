@@ -6,17 +6,16 @@ import (
 )
 
 type AppError struct {
-	Code         int    // Код ошибки (например, 404, 500 и т.д.)
-	Message      string // Сообщение для пользователя
-	Err          error  // Подробная информация об ошибке (можно не показывать пользователю)
-	IsUserFacing bool   // Может ли ошибка быть показана пользователю
+	Code         int    `json:"code"`    // Включить код ошибки в JSON
+	Message      string `json:"message"` // Сообщение для клиента
+	Err          error  `json:"-"`       // Не отправлять внутренние ошибки
+	IsUserFacing bool   `json:"-"`       // Внутреннее поле
 }
 
 func (a *AppError) Error() string {
 	if a == nil {
 		return ""
 	}
-
 	if a.Err != nil {
 		return fmt.Sprintf("%s (code: %d): %v", a.Message, a.Code, a.Err)
 	}
@@ -33,7 +32,7 @@ const (
 	BadRequest          = "bad request"
 	NotFound            = "not_found"
 
-	IncorrectClientDataCode = 400
+	InvalidDataCode         = 402
 	InternalServerErrorCode = 500
 	NotFoundErrorCode       = 404
 )
@@ -48,7 +47,6 @@ func NewAppError(httpCode int, message string, err error, isUserFacing bool) *Ap
 }
 
 func NewDBError(message string, dbError error) *AppError {
-
 	return &AppError{
 		Code:         InternalServerErrorCode,
 		Message:      message,
@@ -72,5 +70,4 @@ func Is(err any, err2 error) bool {
 
 func NewNotFoundError(s string) *AppError {
 	return &AppError{}
-	//errors.NewNotFoundError("patient not found")
 }

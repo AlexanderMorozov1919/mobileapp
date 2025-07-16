@@ -9,17 +9,12 @@ import (
 
 // AddPatientAllergy godoc
 // @Summary Добавить аллергию пациенту
-// @Description Добавляет аллергию в медицинскую карту пациента
-// @Tags Allergy
+// @Tags allergy
 // @Accept json
 // @Produce json
-// @Param info body models.AddAllergyRequest true "Данные аллергии"
-// @Success 200 {object} entities.PatientsAllergy "Добавленная аллергия"
-// @Failure 400 {object} ResultError "Некорректный запрос"
-// @Failure 404 {object} ResultError "Пациент не найден"
-// @Failure 422 {object} ResultError "Ошибка валидации"
-// @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /patient/allergy [post]
+// @Param input body models.AddAllergyRequest true "Данные аллергии"
+// @Success 200 {object} models.AllergyResponse "Добавленная аллергия"
+// @Router /api/v1/patient/allergy [post]
 func (h *Handler) AddPatientAllergy(c *gin.Context) {
 	var input models.AddAllergyRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -41,6 +36,10 @@ func (h *Handler) AddPatientAllergy(c *gin.Context) {
 	h.ResultResponse(c, "Success allergy added", Object, allergy)
 }
 
+// TODO: Дописать обновление аллергий
+
+// TODO: Дописать удаление аллергий
+
 // GetPatientAllergies godoc
 // @Summary Получить аллергии пациента
 // @Description Возвращает список аллергий пациента
@@ -48,7 +47,7 @@ func (h *Handler) AddPatientAllergy(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param patient_id path uint true "ID пациента"
-// @Success 200 {array} entities.PatientsAllergy "Список аллергий"
+// @Success 200 {array} models.AllergyResponse "Список аллергий"
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Пациент не найден"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"

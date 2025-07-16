@@ -5,15 +5,15 @@ import (
 )
 
 type Service struct {
-	/*
-		interfaces.TimeValidatorService
-		interfaces.ParseFilterService
-
-	*/
+	interfaces.ParamsParserService
+	interfaces.FilterBuilderService
 }
 
 func NewService() interfaces.Service {
-	//logger := logging.NewModuleLogger("SERVICES", "GENERAL", parentLogger)
-
-	return Service{}
+	//logger := logging.NewLogger("SERVICES", "GENERAL", parentLogger)
+	parser := NewParamsParser()
+	return Service{
+		parser,
+		NewFilterBuilder(parser),
+	}
 }

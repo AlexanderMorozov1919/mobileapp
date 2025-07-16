@@ -13,20 +13,41 @@ func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
+// Reception - полная информация о медицинском приеме
+// @Description Содержит все данные о приеме у врача
 type Reception struct {
-	DoctorID        uint                     `json:"doctor_id" example:"1" rus:"ID врача"`
-	PatientID       uint                     `json:"patient_id" example:"1" rus:"ID пациента"`
-	Date            time.Time                `json:"date" example:"2023-10-15T14:30:00Z" rus:"Дата приема"`
-	Diagnosis       string                   `example:"ОРВИ" rus:"Диагноз"`
-	Recommendations string                   `json:"recommendations" example:"Постельный режим" rus:"Рекомендации"`
-	IsOut           bool                     `json:"is_out" example:"true" rus:"Вызов на выезд"` // 0 -  в стационаре, 1 - выезд
-	Status          entities.ReceptionStatus `json:"status" example:"scheduled" rus:"Статус"`
-	Address         string                   `json:"address" example:"Москва, ул. Ленина, д. 15" rus:"Адрес"`
+	DoctorID        uint                     `json:"doctor_id" example:"1"`                       // ID врача
+	PatientID       uint                     `json:"patient_id" example:"5"`                      // ID пациента
+	Date            time.Time                `json:"date" example:"2023-10-15T14:30:00Z"`         // Дата и время приема
+	Diagnosis       string                   `json:"diagnosis" example:"ОРВИ"`                    // Поставленный диагноз
+	Recommendations string                   `json:"recommendations" example:"Постельный режим"`  // Рекомендации врача
+	IsOut           bool                     `json:"is_out" example:"true"`                       // Флаг выездного приема
+	Status          entities.ReceptionStatus `json:"status" example:"scheduled"`                  // Статус приема
+	Address         string                   `json:"address" example:"Москва, ул. Ленина, д. 15"` // Адрес приема
 }
 
+// ReceptionShortResponse - сокращенная информация о приеме для списков
+// @Description Содержит основные данные приема для отображения в списках
 type ReceptionShortResponse struct {
-	Date        string `json:"date"`         // Форматированная дата
-	Status      string `json:"status"`       // Статус приёма
-	PatientName string `json:"patient_name"` // ФИО пациента
-	IsOut       bool   `json:"is_out"`       // Выездной приём
+	Id          uint   `json:"id"`
+	Date        string `json:"date" example:"15.10.2023 14:30"`    // Форматированная дата приема
+	Status      string `json:"status" example:"Запланирован"`      // Текстовый статус приема
+	PatientName string `json:"patient_name" example:"Иванов Иван"` // ФИО пациента
+	Diagnosis   string `json:"diagnosis" example:"ОРВИ"`
+	Address     string `json:"address" example:"Москва, ул. Ленина, д. 15" rus:"Адрес больницы"`
+}
+
+type ReceptionHospitalResponse struct {
+	Doctor          DoctorInfoResponse   `json:"doctor"`
+	Patient         ShortPatientResponse `json:"patient"`
+	Diagnosis       string               `json:"diagnosis" example:"ОРВИ"`
+	Recommendations string               `json:"recommendations" example:"Постельный режим"`
+	Date            time.Time            `json:"date" example:"2023-10-15T14:30:00Z"`
+}
+
+type UpdateReceptionHospitalRequest struct {
+	ID              uint                     `json:"id"`
+	Diagnosis       string                   `json:"diagnosis" example:"Грипп" rus:"Диагноз"`
+	Recommendations string                   `json:"recommendations" example:"Постельный режим" rus:"Рекомендации"`
+	Status          entities.ReceptionStatus `gorm:"not null" json:"status" example:"scheduled" rus:"Статус госпитализации"`
 }

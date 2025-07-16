@@ -15,6 +15,7 @@ type Config struct {
 	Database   DatabaseConfig
 	Logging    LoggerConfig
 	Services   Services
+	JWTSecret  string `mapstructure:"JWT_SECRET"`
 }
 
 type AppConfig struct {
