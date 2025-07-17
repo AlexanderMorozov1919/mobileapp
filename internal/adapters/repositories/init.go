@@ -13,6 +13,7 @@ import (
 	receptionHospital "github.com/AlexanderMorozov1919/mobileapp/internal/adapters/repositories/reception_hospital"
 	receptionSmp "github.com/AlexanderMorozov1919/mobileapp/internal/adapters/repositories/reception_smp"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/adapters/repositories/allergy"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/adapters/repositories/auth"
@@ -142,13 +143,13 @@ func seedTestData(db *gorm.DB) error {
 		{
 			FullName:       "Иванов Иван Иванович",
 			Login:          "doctor_ivanov",
-			PasswordHash:   "password",
+			PasswordHash:   hashPassword("password"),
 			Specialization: "Терапевт",
 		},
 		{
 			FullName:       "Петрова Мария Сергеевна",
 			Login:          "doctor_petrova",
-			PasswordHash:   "$2a$10$somehashedpassword",
+			PasswordHash:   "nothashedpassword",
 			Specialization: "Хирург",
 		},
 		{
@@ -365,4 +366,13 @@ func parseDate(dateStr string) time.Time {
 		panic(fmt.Sprintf("invalid date format: %s", dateStr))
 	}
 	return t
+}
+
+// Временно, для теста
+func hashPassword(password string) string {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		panic(fmt.Sprintf("failed to hash password: %v", err))
+	}
+	return string(hashed)
 }

@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
@@ -28,12 +29,19 @@ func NewAuthUsecase(authRepo interfaces.Repository, secretKey string) *AuthUseca
 }
 
 func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) (string, error) {
+	log.Printf("Login attempt for: %s", login)
+
 	user, err := uc.authRepo.GetByLogin(ctx, login)
 	if err != nil || user.ID == 0 {
+		log.Printf("User not found: %v", err)
 		return "", errors.New("invalid credentials")
 	}
 
+	// Добавим логирование для отладки
+	log.Printf("Comparing password for user ID: %d", user.ID)
+
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		log.Printf("Password mismatch: %v", err)
 		return "", errors.New("invalid credentials")
 	}
 
@@ -42,5 +50,6 @@ func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) 
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 
+	log.Printf("Authentication successful for user ID: %d", user.ID)
 	return token.SignedString([]byte(uc.secretKey))
 }

@@ -33,7 +33,7 @@ func NewAuthHandler(authUC *usecases.AuthUsecase) *AuthHandler {
 func (h *AuthHandler) LoginDoctor(w http.ResponseWriter, r *http.Request) {
 	// Логируем входящий запрос
 	body, _ := io.ReadAll(r.Body)
-	r.Body = io.NopCloser(bytes.NewBuffer(body)) // Восстанавливаем тело для дальнейшего чтения
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 	log.Printf("Incoming auth request: %s", string(body))
 
 	var req models.DoctorLoginRequest

@@ -20,6 +20,6 @@ func (r *AuthRepository) GetByLogin(ctx context.Context, login string) (*entitie
 		return nil, err
 	}
 
-	log.Printf("Found doctor: %+v", doctor)
+	log.Printf("Found doctor ID: %d", doctor.ID)
 	return &doctor, nil
 }
