@@ -71,7 +71,7 @@ func InvokeHttpServer(lc fx.Lifecycle, h http.Handler) {
 func NewSwaggerConfig(cfg *config.Config) *swagger.Config {
 	return &swagger.Config{
 		Enabled: true,
-		Path:    "/swagger", // Базовый путь для Swagger
+		Path:    "/swagger",
 	}
 }
 

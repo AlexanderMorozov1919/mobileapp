@@ -486,7 +486,7 @@ info:
     email: support@example.com
     name: API Support
   description: API для работы с приёмами пациентов
-  title: ClinicHub API
+  title: ClinicHub APIdasfas
   version: 1.0.0
 paths:
   /auth:

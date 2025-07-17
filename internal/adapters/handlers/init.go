@@ -12,6 +12,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	_ "github.com/swaggo/files"
 )
 
 var validate *validator.Validate
@@ -44,7 +45,7 @@ func NewHandler(usecase interfaces.Usecases, parentLogger *logging.Logger, servi
 }
 
 // ProvideRouter создает и настраивает маршруты
-func ProvideRouter(h *Handler, cfg *config.Config) http.Handler {
+func ProvideRouter(h *Handler, cfg *config.Config, swagCfg *swagger.Config) http.Handler {
 	r := gin.Default()
 
 	// CORS
@@ -57,10 +58,10 @@ func ProvideRouter(h *Handler, cfg *config.Config) http.Handler {
 	}))
 
 	// Swagger-роутер
-	swagger.Setup(r, &swagger.Config{
-		Enabled: true,
-		Path:    "/swagger", // или куда ты хочешь разместить Swagger UI
-	})
+	swagger.Setup(r, swagCfg)
+
+	// Logger
+	r.Use(LoggingMiddleware(h.logger))
 
 	// Общая группа для API
 	// По RESTFul лучше использовать множественное число в именовании сущностей в роутах

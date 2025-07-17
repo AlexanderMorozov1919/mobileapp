@@ -1592,7 +1592,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "ClinicHub API",
+	Title:            "ClinicHub APIdasfas",
 	Description:      "API для работы с приёмами пациентов",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
