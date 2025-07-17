@@ -26,7 +26,7 @@ func NewAuthHandler(authUC *usecases.AuthUsecase) *AuthHandler {
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
-// @Router /auth/login [post]
+// @Router /auth [post]
 func (h *AuthHandler) LoginDoctor(w http.ResponseWriter, r *http.Request) {
 	var req models.DoctorLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

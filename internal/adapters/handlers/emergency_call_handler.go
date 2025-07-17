@@ -19,7 +19,7 @@ import (
 // @Success 200 {array} entities.EmergencyCall "Список приёмов"
 // @Failure 400 {object} ResultError "Некорректный запрос или параметры"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /emergency/{doctor_id}/receptions [get]
+// @Router /emergency/{doctor_id} [get]
 func (h *Handler) GetEmergencyCallsByDoctorAndDate(c *gin.Context) {
 	// Получаем ID врача
 	doctorID, err := h.service.ParseUintString(c.Param("doc_id"))

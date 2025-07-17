@@ -19,7 +19,7 @@ import (
 // @Success 200 {array} entities.ReceptionSMP "Информация о приёме скорой помощи"
 // @Failure 400 {object} ResultError "Некорректные параметры запроса"
 // @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
-// @Router /smp/{doctor_id}/receptions [get]
+// @Router /smp/{doc_id}/receptions [get]
 func (h *Handler) GetReceptionsSMPByDoctorAndDate(c *gin.Context) {
 	// Получаем doctor_id из URL
 	doctorIDStr := c.Param("doc_id")

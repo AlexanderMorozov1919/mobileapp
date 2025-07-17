@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/middleware/logging"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/middleware/swagger"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/config"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
@@ -11,8 +12,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var validate *validator.Validate
@@ -22,10 +21,11 @@ func init() {
 }
 
 type Handler struct {
-	logger  *logging.Logger
-	usecase interfaces.Usecases
-	service interfaces.Service
-	authUC  *usecases.AuthUsecase // Добавляем AuthUsecase напрямую
+	logger      *logging.Logger
+	usecase     interfaces.Usecases
+	service     interfaces.Service
+	authUC      *usecases.AuthUsecase
+	authHandler *AuthHandler
 }
 
 // NewHandler создает новый экземпляр Handler со всеми зависимостями
@@ -35,10 +35,11 @@ func NewHandler(usecase interfaces.Usecases, parentLogger *logging.Logger, servi
 		"component", "GENERAL",
 	)
 	return &Handler{
-		logger:  handlerLogger,
-		usecase: usecase,
-		service: service,
-		authUC:  authUC,
+		logger:      handlerLogger,
+		usecase:     usecase,
+		service:     service,
+		authUC:      authUC,
+		authHandler: NewAuthHandler(authUC),
 	}
 }
 
@@ -46,7 +47,7 @@ func NewHandler(usecase interfaces.Usecases, parentLogger *logging.Logger, servi
 func ProvideRouter(h *Handler, cfg *config.Config) http.Handler {
 	r := gin.Default()
 
-	// В ProvideRouter:
+	// CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.Server.AllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -55,45 +56,53 @@ func ProvideRouter(h *Handler, cfg *config.Config) http.Handler {
 		AllowCredentials: true,
 	}))
 
-	// Swagger
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	r.Use(LoggingMiddleware(h.logger))
+	// Swagger-роутер
+	swagger.Setup(r, &swagger.Config{
+		Enabled: true,
+		Path:    "/swagger", // или куда ты хочешь разместить Swagger UI
+	})
 
-	// Группа аутентификации
-	authHandler := NewAuthHandler(h.authUC)
-	authGroup := r.Group("/auth")
-	authGroup.POST("/login", gin.WrapF(authHandler.LoginDoctor))
-
+	// Общая группа для API
+	// По RESTFul лучше использовать множественное число в именовании сущностей в роутах
 	baseRouter := r.Group("/api/v1")
 
-	// Группа медкарты пациента
-	medCardGroup := baseRouter.Group("/medcard")
-	medCardGroup.GET("/:pat_id", h.GetMedCardByPatientID)
-	medCardGroup.PUT("/:pat_id", h.UpdateMedCard)
-	// TODO: Дописать добавление новых аллергий пациента и их изменение
+	// Роутер авторизации
+	authGroup := baseRouter.Group("/auth")
+	authHandler := NewAuthHandler(h.authUC)
+	authGroup.POST("/", gin.WrapF(authHandler.LoginDoctor))
 
-	r.GET("/receps/:doctor_id", h.GetReceptionsSMPByDoctorAndDate)
-
-	// Группа маршрутов для заключений
-	receptionHospital := baseRouter.Group("/recepHospital")
-	receptionHospital.GET("/:doc_id", h.GetReceptionsHospitalByDoctorAndDate)
-	receptionHospital.GET("/patients/:pat_id", h.GetReceptionsHospitalByPatientID)
-	receptionHospital.PUT("/:recep_id", h.UpdateReceptionHospitalByReceptionID)
+	// Роутеры доктора
+	doctorGroup := baseRouter.Group("/doctors")
+	doctorGroup.GET("/:doc_id", h.GetDoctorByID)
+	doctorGroup.PUT("/:doc_id", h.UpdateDoctor)
 
 	// Роутеры пациентов
 	patientGroup := baseRouter.Group("/patients")
-	patientGroup.GET("/:doc_id", h.GetPatientsByDoctorID)
-	patientGroup.GET("/recep_hosp/:pat_id", h.GetReceptionsHospitalByPatientID)
-
-	// Временный для получения всех пациентов
 	patientGroup.GET("/", h.GetAllPatients)
+	patientGroup.GET("/:pat_id", h.GetPatientByID)
+	patientGroup.POST("/", h.CreatePatient)
+	patientGroup.PUT("/:pat_id", h.UpdatePatient)
+	patientGroup.DELETE("/:pat_id", h.DeletePatient)
 
-	// Роутеры СМП
-	emergencyGroup := baseRouter.Group("/emergencyGroup")
+	// Роутеры медкарт
+	medCardGroup := baseRouter.Group("/medcard")
+	medCardGroup.GET("/:pat_id", h.GetMedCardByPatientID)
+	medCardGroup.PUT("/:pat_id", h.UpdateMedCard)
 
+	// Роутеры для приёмов больницы
+	// INFO: тут была неконсистентность путей, пришлось поправить
+	hospitalGroup := baseRouter.Group("/hospital")
+	hospitalGroup.GET("/doctors/:doc_id/receptions", h.GetReceptionsHospitalByDoctorAndDate)
+	hospitalGroup.PUT("/receptions/:recep_id", h.UpdateReceptionHospitalByReceptionID)
+
+	// Роутеры для приёмов скорой помощи
+	smpGroup := baseRouter.Group("/smp")
+	smpGroup.GET("/doctors/:doc_id/receptions", h.GetReceptionsSMPByDoctorAndDate)
+	smpGroup.GET("/:smp_id", h.GetReceptionWithMedServices)
+
+	// Роутеры звонков для скорой помощи
+	emergencyGroup := baseRouter.Group("/emergency")
 	emergencyGroup.GET("/:doc_id", h.GetEmergencyCallsByDoctorAndDate)
-	emergencyGroup.GET("/:doc_id/smps", h.GetReceptionsSMPByDoctorAndDate)
-	emergencyGroup.GET("/:doc_id/smps/:smp_id", h.GetReceptionWithMedServices)
 
 	return r
 }

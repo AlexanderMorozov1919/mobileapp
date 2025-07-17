@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // GetDoctorByID godoc
@@ -17,7 +18,7 @@ import (
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Врач не найден"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /doctor/{id} [get]
+// @Router /doctors/{doc_id} [get]
 func (h *Handler) GetDoctorByID(c *gin.Context) {
 	id, err := h.service.ParseUintString(c.Param("id"))
 	if err != nil {
@@ -45,7 +46,7 @@ func (h *Handler) GetDoctorByID(c *gin.Context) {
 // @Failure 404 {object} ResultError "Врач не найден"
 // @Failure 422 {object} ResultError "Ошибка валидации"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /doctor [put]
+// @Router /doctors/{doc_id} [put]
 func (h *Handler) UpdateDoctor(c *gin.Context) {
 	var input models.UpdateDoctorRequest
 	if err := c.ShouldBindJSON(&input); err != nil {

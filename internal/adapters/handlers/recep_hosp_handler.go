@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetReceptionByID godoc
+// GetReceptionsHospitalByPatientID godoc
 // @Summary Получить список приёмов пациента по его ID
 // @Description Возвращает информацию о приёме
 // @Tags Reception
@@ -19,7 +19,7 @@ import (
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Приём не найден"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /reception/{id} [get]
+// @Router /hospital/patients/{pat_id} [get]
 func (h *Handler) GetReceptionsHospitalByPatientID(c *gin.Context) {
 	id, err := h.service.ParseUintString(c.Param("pat_id"))
 	if err != nil {
@@ -37,7 +37,7 @@ func (h *Handler) GetReceptionsHospitalByPatientID(c *gin.Context) {
 }
 
 // GetPatientsByDoctorID godoc
-// @Summary Получить приём по ID
+// @Summary Получить приём по доктору
 // @Description Возвращает информацию о приёме
 // @Tags Reception
 // @Accept json
@@ -47,7 +47,7 @@ func (h *Handler) GetReceptionsHospitalByPatientID(c *gin.Context) {
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Приём не найден"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /reception/{id} [get]
+// @Router /hospital/{doc_id} [get]
 func (h *Handler) GetPatientsByDoctorID(c *gin.Context) {
 	id, err := h.service.ParseUintString(c.Param("doc_id"))
 
@@ -78,19 +78,18 @@ func (h *Handler) GetPatientsByDoctorID(c *gin.Context) {
 	h.ResultResponse(c, "Success receptios get", Array, reception)
 }
 
-// GetReceptionsByDoctorAndDate godoc
-// @Summary Получить приём по доктору и дате
-// @Description Возвращает пагинированный список приёмов для конкретных доктора и даты
+// UpdateReceptionHospitalByReceptionID godoc
+// @Summary Обновить приём в больнице
+// @Description Обновляет информацию о приёе в больнице
 // @Tags Reception
 // @Accept json
 // @Produce json
-// @Param doctor_id path int true "Doctor ID"
-// @Param date query string false "Date in YYYY-MM-DD format"
-// @Param page query int false "Page number" default(1)
+// @Param recep_id path uint true "ID приёма"
+// @Param info body models.UpdateReceptionHospitalRequest true "Данные для обновления"
 // @Success 200 {array} entities.ReceptionHospital
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /receptions/doctor/{doctor_id} [get]
+// @Router /hospital/{recep_id} [put]
 func (h *Handler) UpdateReceptionHospitalByReceptionID(c *gin.Context) {
 	var input models.UpdateReceptionHospitalRequest
 	if err := c.ShouldBindJSON(&input); err != nil {

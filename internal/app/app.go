@@ -67,19 +67,19 @@ func InvokeHttpServer(lc fx.Lifecycle, h http.Handler) {
 	})
 }
 
-// Konkov: Swagger-провайдер, тут конфигурируется Swaggo
+// Swagger-конфигуратор
 func NewSwaggerConfig(cfg *config.Config) *swagger.Config {
 	return &swagger.Config{
-		Enabled: true,       // Или cfg.Swagger.Enable, если есть
+		Enabled: true,
 		Path:    "/swagger", // Базовый путь для Swagger
 	}
 }
 
 var HttpServerModule = fx.Module("http_server_module",
 	fx.Provide(
-		NewSwaggerConfig,       // <- Добавили сюда
-		handlers.NewHandler,    // зависит от Usecases, AuthUsecase, Logger, Service
-		handlers.ProvideRouter, // зависит от Handler
+		NewSwaggerConfig,
+		handlers.NewHandler,
+		handlers.ProvideRouter,
 	),
 	fx.Invoke(InvokeHttpServer),
 )
