@@ -56,7 +56,7 @@ func (h *Handler) GetAllPatients(c *gin.Context) {
 // @Tags Patient
 // @Accept json
 // @Produce json
-// @Param id path uint true "ID пациента"
+// @Param pat_id path uint true "ID пациента"
 // @Success 200 {object} entities.Patient "Информация о пациенте"
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Пациент не найден"
@@ -71,6 +71,10 @@ func (h *Handler) GetPatientByID(c *gin.Context) {
 
 	patient, eerr := h.usecase.GetPatientByID(id)
 	if eerr != nil {
+		if eerr.Code == http.StatusNotFound {
+			h.ErrorResponse(c, eerr.Err, http.StatusNotFound, eerr.Message, eerr.IsUserFacing)
+			return
+		}
 		h.ErrorResponse(c, eerr.Err, eerr.Code, eerr.Message, eerr.IsUserFacing)
 		return
 	}
@@ -110,6 +114,7 @@ func (h *Handler) CreatePatient(c *gin.Context) {
 // @Tags Patient
 // @Accept json
 // @Produce json
+// @Param pat_id path uint true "ID пациента"
 // @Param info body models.UpdatePatientRequest true "Данные для обновления"
 // @Success 200 {object} entities.Patient "Обновленный пациент"
 // @Failure 400 {object} ResultError "Некорректный запрос"
@@ -150,7 +155,7 @@ func (h *Handler) UpdatePatient(c *gin.Context) {
 // @Tags Patient
 // @Accept json
 // @Produce json
-// @Param id path uint true "ID пациента"
+// @Param pat_id path uint true "ID пациента"
 // @Success 200 {object} ResultResponse "Успешное удаление"
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Пациент не найден"

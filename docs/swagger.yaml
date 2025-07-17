@@ -332,17 +332,17 @@ definitions:
   models.DoctorLoginRequest:
     description: Запрос для входа врача в систему
     properties:
-      login:
-        description: Логин (телефон)
-        example: "+79123456789"
-        type: string
       password:
         description: Пароль
-        example: qwerty123
+        example: password1
+        type: string
+      username:
+        description: Логин (телефон)
+        example: doctor1
         type: string
     required:
-    - login
     - password
+    - username
     type: object
   models.MedCardResponse:
     description: Содержит всю медицинскую информацию о пациенте
@@ -486,7 +486,7 @@ info:
     email: support@example.com
     name: API Support
   description: API для работы с приёмами пациентов
-  title: ClinicHub APIdasfas
+  title: ClinicHub API
   version: 1.0.0
 paths:
   /auth:
@@ -533,7 +533,7 @@ paths:
       parameters:
       - description: ID врача
         in: path
-        name: id
+        name: doc_id
         required: true
         type: integer
       produces:
@@ -643,7 +643,7 @@ paths:
       - application/json
       description: Возвращает информацию о приёме
       parameters:
-      - description: ID приёма
+      - description: ID доктора
         in: path
         name: id
         required: true
@@ -897,7 +897,7 @@ paths:
       parameters:
       - description: ID пациента
         in: path
-        name: id
+        name: pat_id
         required: true
         type: integer
       produces:
@@ -929,7 +929,7 @@ paths:
       parameters:
       - description: ID пациента
         in: path
-        name: id
+        name: pat_id
         required: true
         type: integer
       produces:
@@ -959,6 +959,11 @@ paths:
       - application/json
       description: Обновляет информацию о пациенте
       parameters:
+      - description: ID пациента
+        in: path
+        name: pat_id
+        required: true
+        type: integer
       - description: Данные для обновления
         in: body
         name: info

@@ -4,14 +4,14 @@ import (
 	"time"
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
-	"github.com/go-playground/validator/v10"
 )
 
-var validate *validator.Validate
+// Постоянно unused
+// var validate *validator.Validate
 
-func init() {
-	validate = validator.New(validator.WithRequiredStructEnabled())
-}
+// func init() {
+// 	validate = validator.New(validator.WithRequiredStructEnabled())
+// }
 
 // Reception - полная информация о медицинском приеме
 // @Description Содержит все данные о приеме у врача

@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "API для работы с приёмами пациентов",
-        "title": "ClinicHub APIdasfas",
+        "title": "ClinicHub API",
         "contact": {
             "name": "API Support",
             "email": "support@example.com"
@@ -84,7 +84,7 @@
                     {
                         "type": "integer",
                         "description": "ID врача",
-                        "name": "id",
+                        "name": "doc_id",
                         "in": "path",
                         "required": true
                     }
@@ -300,7 +300,7 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ID приёма",
+                        "description": "ID доктора",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -631,7 +631,7 @@
                     {
                         "type": "integer",
                         "description": "ID пациента",
-                        "name": "id",
+                        "name": "pat_id",
                         "in": "path",
                         "required": true
                     }
@@ -676,6 +676,13 @@
                 ],
                 "summary": "Обновить данные пациента",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Данные для обновления",
                         "name": "info",
@@ -735,7 +742,7 @@
                     {
                         "type": "integer",
                         "description": "ID пациента",
-                        "name": "id",
+                        "name": "pat_id",
                         "in": "path",
                         "required": true
                     }
@@ -1360,19 +1367,19 @@
             "description": "Запрос для входа врача в систему",
             "type": "object",
             "required": [
-                "login",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
-                "login": {
-                    "description": "Логин (телефон)",
-                    "type": "string",
-                    "example": "+79123456789"
-                },
                 "password": {
                     "description": "Пароль",
                     "type": "string",
-                    "example": "qwerty123"
+                    "example": "password1"
+                },
+                "username": {
+                    "description": "Логин (телефон)",
+                    "type": "string",
+                    "example": "doctor1"
                 }
             }
         },

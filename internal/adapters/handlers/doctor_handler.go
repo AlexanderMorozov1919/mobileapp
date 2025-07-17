@@ -13,14 +13,14 @@ import (
 // @Tags Doctor
 // @Accept json
 // @Produce json
-// @Param id path uint true "ID врача"
+// @Param doc_id path uint true "ID врача"
 // @Success 200 {object} entities.Doctor "Данные врача"
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Врач не найден"
 // @Failure 500 {object} ResultError "Внутренняя ошибка"
 // @Router /doctors/{doc_id} [get]
 func (h *Handler) GetDoctorByID(c *gin.Context) {
-	id, err := h.service.ParseUintString(c.Param("id"))
+	id, err := h.service.ParseUintString(c.Param("doc_id"))
 	if err != nil {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "parameter 'id' must be an integer", false)
 		return

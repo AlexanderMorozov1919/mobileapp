@@ -42,7 +42,7 @@ func (h *Handler) GetReceptionsHospitalByPatientID(c *gin.Context) {
 // @Tags Reception
 // @Accept json
 // @Produce json
-// @Param id path uint true "ID приёма"
+// @Param id path uint true "ID доктора"
 // @Success 200 {object} entities.ReceptionHospital "Информация о приёме"
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Приём не найден"

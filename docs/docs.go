@@ -90,7 +90,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "ID врача",
-                        "name": "id",
+                        "name": "doc_id",
                         "in": "path",
                         "required": true
                     }
@@ -306,7 +306,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ID приёма",
+                        "description": "ID доктора",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -637,7 +637,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "ID пациента",
-                        "name": "id",
+                        "name": "pat_id",
                         "in": "path",
                         "required": true
                     }
@@ -682,6 +682,13 @@ const docTemplate = `{
                 ],
                 "summary": "Обновить данные пациента",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Данные для обновления",
                         "name": "info",
@@ -741,7 +748,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "ID пациента",
-                        "name": "id",
+                        "name": "pat_id",
                         "in": "path",
                         "required": true
                     }
@@ -1366,19 +1373,19 @@ const docTemplate = `{
             "description": "Запрос для входа врача в систему",
             "type": "object",
             "required": [
-                "login",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
-                "login": {
-                    "description": "Логин (телефон)",
-                    "type": "string",
-                    "example": "+79123456789"
-                },
                 "password": {
                     "description": "Пароль",
                     "type": "string",
-                    "example": "qwerty123"
+                    "example": "password1"
+                },
+                "username": {
+                    "description": "Логин (телефон)",
+                    "type": "string",
+                    "example": "doctor1"
                 }
             }
         },
@@ -1592,7 +1599,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "ClinicHub APIdasfas",
+	Title:            "ClinicHub API",
 	Description:      "API для работы с приёмами пациентов",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

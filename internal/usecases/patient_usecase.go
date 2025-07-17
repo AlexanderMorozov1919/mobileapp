@@ -2,13 +2,14 @@ package usecases
 
 import (
 	"fmt"
+	"math"
+	"time"
+
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
 	"gorm.io/gorm"
-	"math"
-	"time"
 )
 
 type PatientUsecase struct {
