@@ -142,7 +142,7 @@ func seedTestData(db *gorm.DB) error {
 		{
 			FullName:       "Иванов Иван Иванович",
 			Login:          "doctor_ivanov",
-			PasswordHash:   "$2a$10$somehashedpassword",
+			PasswordHash:   "password",
 			Specialization: "Терапевт",
 		},
 		{
