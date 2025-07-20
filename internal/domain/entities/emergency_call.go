@@ -1,3 +1,4 @@
+// internal/domain/entities/emergency_call.go
 package entities
 
 import (
@@ -6,7 +7,6 @@ import (
 
 type EmergencyStatus string
 
-// Статусы приёмов скорой помощи
 const (
 	EmergencyStatusScheduled EmergencyStatus = "scheduled"
 	EmergencyStatusAccepted  EmergencyStatus = "accepted"
@@ -24,10 +24,10 @@ type EmergencyCall struct {
 
 	DoctorID uint            `gorm:"not null;index" json:"doctor_id" example:"1"`
 	Doctor   Doctor          `gorm:"foreignKey:DoctorID" json:"-"`
-	Status   EmergencyStatus `json:"status" example:"in_progress"`
+	Status   EmergencyStatus `json:"status" example:"scheduled"`
 	Priority bool            `json:"priority" example:"true"`
-	Address  string          `gorm:"not null" json:"address" example:"Москва, ул. Ленина, д. 15"`
-	Phone    string          `gorm:"not null" json:"phone" example:"+79991234567"`
+	Address  string          `json:"address" example:"+79991234567"`
+	Phone    string          `json:"phone" example:"+79991234567"`
 
 	ReceptionSMPs []ReceptionSMP `gorm:"foreignKey:EmergencyCallID" json:"receptions"`
 }

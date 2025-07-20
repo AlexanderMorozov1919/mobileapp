@@ -781,7 +781,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/smp/{doc_id}/receptions": {
+        "/smp/{doctor_id}/receptions": {
             "get": {
                 "description": "Возвращает список приёмов скорой медицинской помощи для указанного врача с пагинацией",
                 "consumes": [
@@ -844,7 +844,7 @@ const docTemplate = `{
         },
         "/smp/{smp_id}": {
             "get": {
-                "description": "Возвращает информацию о приёме скорой медицинской помощи вместе со списком медицинских услуг",
+                "description": "Возвращает созданное заключение",
                 "consumes": [
                     "application/json"
                 ],
@@ -854,21 +854,12 @@ const docTemplate = `{
                 "tags": [
                     "SMP"
                 ],
-                "summary": "Получить приём СМП с медуслугами по ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID приёма СМП",
-                        "name": "smp_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "Создать заключение на скорой",
                 "responses": {
                     "200": {
-                        "description": "Информация о приёме и медуслугах",
+                        "description": "Заключение для пациента",
                         "schema": {
-                            "$ref": "#/definitions/entities.MedService"
+                            "$ref": "#/definitions/entities.ReceptionSMP"
                         }
                     },
                     "400": {
@@ -878,7 +869,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Приём не найден",
+                        "description": "Переданные данные некорекктны",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -973,8 +964,7 @@ const docTemplate = `{
                     }
                 },
                 "specialization": {
-                    "type": "string",
-                    "example": "Терапевт"
+                    "$ref": "#/definitions/entities.Specialization"
                 },
                 "updated_at": {
                     "type": "string"
@@ -986,7 +976,7 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string",
-                    "example": "Москва, ул. Ленина, д. 15"
+                    "example": "+79991234567"
                 },
                 "created_at": {
                     "type": "string"
@@ -1018,7 +1008,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/entities.EmergencyStatus"
                         }
                     ],
-                    "example": "in_progress"
+                    "example": "scheduled"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1108,6 +1098,10 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "on_treatment": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "personal_info": {
                     "$ref": "#/definitions/entities.PersonalInfo"
                 },
@@ -1170,18 +1164,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "ОРВИ"
                 },
-                "doctor": {
-                    "$ref": "#/definitions/entities.Doctor"
-                },
                 "doctor_id": {
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
                     "type": "integer"
-                },
-                "patient": {
-                    "$ref": "#/definitions/entities.Patient"
                 },
                 "patient_id": {
                     "type": "integer",
@@ -1191,6 +1179,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Постельный режим"
                 },
+                "specialization_data": {
+                    "description": "Специализированные данные",
+                    "type": "object"
+                },
+                "specialization_data_decoded": {},
                 "status": {
                     "allOf": [
                         {
@@ -1239,6 +1232,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Постельный режим"
                 },
+                "specialization_data": {
+                    "description": "Специализированные данные",
+                    "type": "object"
+                },
+                "specialization_data_decoded": {},
                 "updated_at": {
                     "type": "string"
                 }
@@ -1252,18 +1250,24 @@ const docTemplate = `{
                 "cancelled",
                 "no_show"
             ],
-            "x-enum-comments": {
-                "StatusCancelled": "\"Отменен\"",
-                "StatusCompleted": "\"Завершен\"",
-                "StatusNoShow": "\"Не явился\"",
-                "StatusScheduled": "\"Запланирован\""
-            },
             "x-enum-varnames": [
                 "StatusScheduled",
                 "StatusCompleted",
                 "StatusCancelled",
                 "StatusNoShow"
             ]
+        },
+        "entities.Specialization": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Терапевт"
+                }
+            }
         },
         "handlers.ResultError": {
             "type": "object",
@@ -1496,10 +1500,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "newpassword123"
                 },
-                "specialization": {
+                "specialization_id": {
                     "description": "Новая специализация",
-                    "type": "string",
-                    "example": "Хирург"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },

@@ -1,3 +1,4 @@
+// internal/domain/entities/reception_hospital.go
 package entities
 
 import (
@@ -8,12 +9,11 @@ import (
 
 type ReceptionStatus string
 
-// Статусы приёмов
 const (
-	StatusScheduled ReceptionStatus = "scheduled" // "Запланирован"
-	StatusCompleted ReceptionStatus = "completed" // "Завершен"
-	StatusCancelled ReceptionStatus = "cancelled" // "Отменен"
-	StatusNoShow    ReceptionStatus = "no_show"   // "Не явился"
+	StatusScheduled ReceptionStatus = "scheduled"
+	StatusCompleted ReceptionStatus = "completed"
+	StatusCancelled ReceptionStatus = "cancelled"
+	StatusNoShow    ReceptionStatus = "no_show"
 )
 
 // ReceptionHospital представляет приёмы стационара и выезда
@@ -22,25 +22,20 @@ type ReceptionHospital struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	DoctorID  uint    `gorm:"not null;index" json:"doctor_id" example:"1" rus:"ID врача"`
-	Doctor    Doctor  `gorm:"foreignKey:DoctorID" json:"doctor"`
-	PatientID uint    `gorm:"not null;index" json:"patient_id" example:"1" rus:"ID пациента"`
-	Patient   Patient `gorm:"foreignKey:PatientID" json:"patient"`
-	// JSONB где будут диагноз рекомендации и тд
+	DoctorID  uint    `gorm:"not null;index" json:"doctor_id" example:"1"`
+	Doctor    Doctor  `gorm:"foreignKey:DoctorID" json:"-"`
+	PatientID uint    `gorm:"not null;index" json:"patient_id" example:"1"`
+	Patient   Patient `gorm:"foreignKey:PatientID" json:"-"`
 
-	Diagnosis       string          `json:"diagnosis" example:"ОРВИ" rus:"Диагноз"`
-	Recommendations string          `json:"recommendations" example:"Постельный режим" rus:"Рекомендации"`
-	Address         string          `gorm:"not null" json:"address" example:"Москва, ул. Ленина, д. 15" rus:"Адрес больницы"`
-	Status          ReceptionStatus `gorm:"not null" json:"status" example:"scheduled" rus:"Статус госпитализации"`
-	Date            time.Time       `gorm:"not null" json:"date" example:"2023-10-15T14:30:00Z" rus:"Дата госпитализации"`
+	Diagnosis       string          `json:"diagnosis" example:"ОРВИ"`
+	Recommendations string          `json:"recommendations" example:"Постельный режим"`
+	Address         string          `json:"address" example:"Москва, ул. Ленина, д. 15"`
+	Status          ReceptionStatus `json:"status" example:"scheduled"`
+	Date            time.Time       `json:"date" example:"2023-10-15T14:30:00Z"`
 
 	// Специализированные данные
-	SpecializationData pgtype.JSONB `gorm:"type:jsonb" json:"specialization_data"`
+	SpecializationData pgtype.JSONB `gorm:"type:jsonb" json:"specialization_data" swaggertype:"object"`
 
-	// Кэшированная специализация для быстрых запросов
-	CachedSpecialization string `gorm:"index" json:"-"`
-
-	// Добавленное поле для декодированных данных
-	// gorm:"-" означает, что поле не будет сохраняться в БД
+	CachedSpecialization      string      `gorm:"index" json:"-"`
 	SpecializationDataDecoded interface{} `gorm:"-" json:"specialization_data_decoded"`
 }

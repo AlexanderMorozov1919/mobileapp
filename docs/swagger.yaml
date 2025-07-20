@@ -49,15 +49,14 @@ definitions:
           $ref: '#/definitions/entities.ReceptionHospital'
         type: array
       specialization:
-        example: Терапевт
-        type: string
+        $ref: '#/definitions/entities.Specialization'
       updated_at:
         type: string
     type: object
   entities.EmergencyCall:
     properties:
       address:
-        example: Москва, ул. Ленина, д. 15
+        example: "+79991234567"
         type: string
       created_at:
         type: string
@@ -79,7 +78,7 @@ definitions:
       status:
         allOf:
         - $ref: '#/definitions/entities.EmergencyStatus'
-        example: in_progress
+        example: scheduled
       updated_at:
         type: string
     type: object
@@ -143,6 +142,9 @@ definitions:
       is_male:
         example: true
         type: boolean
+      on_treatment:
+        example: false
+        type: boolean
       personal_info:
         $ref: '#/definitions/entities.PersonalInfo'
       receptions:
@@ -186,21 +188,21 @@ definitions:
       diagnosis:
         example: ОРВИ
         type: string
-      doctor:
-        $ref: '#/definitions/entities.Doctor'
       doctor_id:
         example: 1
         type: integer
       id:
         type: integer
-      patient:
-        $ref: '#/definitions/entities.Patient'
       patient_id:
         example: 1
         type: integer
       recommendations:
         example: Постельный режим
         type: string
+      specialization_data:
+        description: Специализированные данные
+        type: object
+      specialization_data_decoded: {}
       status:
         allOf:
         - $ref: '#/definitions/entities.ReceptionStatus'
@@ -233,6 +235,10 @@ definitions:
       recommendations:
         example: Постельный режим
         type: string
+      specialization_data:
+        description: Специализированные данные
+        type: object
+      specialization_data_decoded: {}
       updated_at:
         type: string
     type: object
@@ -243,16 +249,19 @@ definitions:
     - cancelled
     - no_show
     type: string
-    x-enum-comments:
-      StatusCancelled: '"Отменен"'
-      StatusCompleted: '"Завершен"'
-      StatusNoShow: '"Не явился"'
-      StatusScheduled: '"Запланирован"'
     x-enum-varnames:
     - StatusScheduled
     - StatusCompleted
     - StatusCancelled
     - StatusNoShow
+  entities.Specialization:
+    properties:
+      id:
+        type: integer
+      title:
+        example: Терапевт
+        type: string
+    type: object
   handlers.ResultError:
     properties:
       response:
@@ -419,10 +428,10 @@ definitions:
         description: Новый пароль
         example: newpassword123
         type: string
-      specialization:
+      specialization_id:
         description: Новая специализация
-        example: Хирург
-        type: string
+        example: 1
+        type: integer
     type: object
   models.UpdateMedCardRequest:
     description: Содержит всю медицинскую информацию о пациенте
@@ -996,7 +1005,7 @@ paths:
       summary: Обновить данные пациента
       tags:
       - Patient
-  /smp/{doc_id}/receptions:
+  /smp/{doctor_id}/receptions:
     get:
       consumes:
       - application/json
@@ -1042,27 +1051,20 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает информацию о приёме скорой медицинской помощи вместе
-        со списком медицинских услуг
-      parameters:
-      - description: ID приёма СМП
-        in: path
-        name: smp_id
-        required: true
-        type: integer
+      description: Возвращает созданное заключение
       produces:
       - application/json
       responses:
         "200":
-          description: Информация о приёме и медуслугах
+          description: Заключение для пациента
           schema:
-            $ref: '#/definitions/entities.MedService'
+            $ref: '#/definitions/entities.ReceptionSMP'
         "400":
           description: Некорректный ID
           schema:
             $ref: '#/definitions/handlers.ResultError'
         "404":
-          description: Приём не найден
+          description: Переданные данные некорекктны
           schema:
             additionalProperties:
               type: string
@@ -1073,7 +1075,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Получить приём СМП с медуслугами по ID
+      summary: Создать заключение на скорой
       tags:
       - SMP
 swagger: "2.0"
