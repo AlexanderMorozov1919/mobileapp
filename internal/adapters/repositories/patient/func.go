@@ -125,7 +125,7 @@ func (r *PatientRepositoryImpl) GetPatientByID(id uint) (entities.Patient, error
 	return patient, nil
 }
 
-func (r *PatientRepositoryImpl) GetAllPatients(limit, offset int, queryFilter string, parameters []interface{}) ([]entities.Patient, int64, error) {
+func (r *PatientRepositoryImpl) GetAllPatients(page, count int, queryFilter string, parameters []interface{}) ([]entities.Patient, int64, error) {
 	// Создаем базовый запрос
 	query := r.db.Model(&entities.Patient{})
 
@@ -141,11 +141,9 @@ func (r *PatientRepositoryImpl) GetAllPatients(limit, offset int, queryFilter st
 	}
 
 	// Применяем пагинацию
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-	if offset >= 0 {
-		query = query.Offset(offset)
+	if page > 0 && count > 0 {
+		offset := (page - 1) * count
+		query = query.Offset(offset).Limit(count)
 	}
 
 	// Получаем записи

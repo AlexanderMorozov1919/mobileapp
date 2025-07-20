@@ -28,13 +28,13 @@ func NewAuthUsecase(authRepo interfaces.Repository, secretKey string) *AuthUseca
 	}
 }
 
-func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) (string, error) {
+func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) (uint, string, error) {
 	log.Printf("Login attempt for: %s", login)
 
 	user, err := uc.authRepo.GetByLogin(ctx, login)
 	if err != nil || user.ID == 0 {
 		log.Printf("User not found: %v", err)
-		return "", errors.New("invalid credentials")
+		return 0, "", errors.New("invalid credentials")
 	}
 
 	// Добавим логирование для отладки
@@ -42,7 +42,7 @@ func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) 
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		log.Printf("Password mismatch: %v", err)
-		return "", errors.New("invalid credentials")
+		return 0, "", errors.New("invalid credentials")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -50,6 +50,13 @@ func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) 
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 
+	// Получаем подписанный токен и обрабатываем возможную ошибку
+	tokenString, err := token.SignedString([]byte(uc.secretKey))
+	if err != nil {
+		log.Printf("Failed to sign token: %v", err)
+		return 0, "", errors.New("failed to generate token")
+	}
+
 	log.Printf("Authentication successful for user ID: %d", user.ID)
-	return token.SignedString([]byte(uc.secretKey))
+	return user.ID, tokenString, nil
 }

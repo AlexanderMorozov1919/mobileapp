@@ -7,6 +7,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -50,7 +51,7 @@ func (s *FilterBuilder) ParseFilterString(filterStr string, modelFields map[stri
 
 		var fieldType string
 
-		// Определение типа поля: сначала ищем в customFields, потом в modelFields
+		// Определение типа поля: сначала ищем в modelFields
 		if t, ok := modelFields[field]; ok {
 			fieldType = t
 		} else {
@@ -101,10 +102,31 @@ func (s *FilterBuilder) buildCondition(key, value, compare, fieldType string) (s
 			return fmt.Sprintf("LOWER(%s) LIKE ?", key), strings.ToLower(value) + "%", nil
 		case "like":
 			// Подстрока
-			return fmt.Sprintf("%s LIKE ?", key), "%" + value + "%", nil
+			return fmt.Sprintf("%s ILIKE ?", key), "%" + value + "%", nil
 
 		default:
 			return "", nil, fmt.Errorf("unsupported string compare: %s", compare)
+		}
+
+	case "uint":
+		switch compare {
+		case "eq":
+			return fmt.Sprintf("%s = ?", key), value, nil
+
+		default:
+			return "", nil, fmt.Errorf("unsupported uint compare: %s", compare)
+		}
+
+	case "bool":
+		switch compare {
+		case "eq":
+			boolVal, err := strconv.ParseBool(value)
+			if err != nil {
+				return "", nil, fmt.Errorf("invalid boolean value: %s", value)
+			}
+			return fmt.Sprintf("%s = ?", key), boolVal, nil
+		default:
+			return "", nil, fmt.Errorf("unsupported bool compare: %s", compare)
 		}
 
 	case "Time":

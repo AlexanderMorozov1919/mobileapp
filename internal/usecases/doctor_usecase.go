@@ -29,10 +29,10 @@ func (u *DoctorUsecase) CreateDoctor(doctor *models.CreateDoctorRequest) (entiti
 	log.Println("hash Pass  for Create Doctor")
 	log.Println("")
 	createDoctor := entities.Doctor{
-		FullName:       doctor.FullName,
-		Login:          doctor.Login,
-		PasswordHash:   string(passwordHash),
-		Specialization: doctor.Specialization,
+		FullName:         doctor.FullName,
+		Login:            doctor.Login,
+		PasswordHash:     string(passwordHash),
+		SpecializationID: doctor.SpecializationID,
 	}
 
 	createdDoctorID, errAp := u.repo.CreateDoctor(createDoctor)
@@ -63,11 +63,11 @@ func (u *DoctorUsecase) GetDoctorByID(id uint) (entities.Doctor, *errors.AppErro
 func (u *DoctorUsecase) UpdateDoctor(input *models.UpdateDoctorRequest) (entities.Doctor, *errors.AppError) {
 
 	updateMap := map[string]interface{}{
-		"full_name":      input.FullName,
-		"login":          input.Login,
-		"password":       input.Password,
-		"specialization": input.Specialization,
-		"updated_at":     time.Now(),
+		"full_name":         input.FullName,
+		"login":             input.Login,
+		"password":          input.Password,
+		"specialization_id": input.SpecializationID,
+		"updated_at":        time.Now(),
 	}
 
 	updatedDoctorID, err := u.repo.UpdateDoctor(input.ID, updateMap)

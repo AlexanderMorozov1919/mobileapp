@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
+	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -87,7 +88,7 @@ func (r *ReceptionHospitalRepositoryImpl) GetReceptionHospitalByPatientID(patien
 	var receptions []entities.ReceptionHospital
 	if err := r.db.
 		Preload("Patient").
-		Preload("Doctor").
+		Preload("Doctor.Specialization").
 		Where("patient_id = ?", patientID).
 		Find(&receptions).Error; err != nil {
 		return nil, errors.NewDBError(op, err)
@@ -132,45 +133,6 @@ func getOrderByStatusAndDate() string {
     `
 }
 
-func (r *ReceptionHospitalRepositoryImpl) GetReceptionsHospitalByDoctorAndDate(
-	doctorID uint,
-	date time.Time,
-	page, perPage int,
-) ([]entities.ReceptionHospital, int64, error) {
-	var receptions []entities.ReceptionHospital
-	var total int64
-
-	// Рассчитываем временной диапазон
-	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-	endOfDay := startOfDay.Add(24 * time.Hour)
-
-	// Создаем базовый запрос с условиями фильтрации
-	baseQuery := r.db.
-		Model(&entities.ReceptionHospital{}).
-		Where("doctor_id = ? AND date >= ? AND date < ?", doctorID, startOfDay, endOfDay)
-
-	// Получаем общее количество записей
-	if err := baseQuery.Count(&total).Error; err != nil {
-		return nil, 0, fmt.Errorf("failed to count receptions: %w", err)
-	}
-
-	// Получаем данные с пагинацией
-	offset := (page - 1) * perPage
-	err := baseQuery.
-		Preload("Patient").
-		Offset(offset).
-		Limit(perPage).
-		Order(getOrderByStatusAndDate()).
-		Find(&receptions).
-		Error
-
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed to get receptions: %w", err)
-	}
-
-	return receptions, total, nil
-}
-
 func (r *ReceptionHospitalRepositoryImpl) GetPatientsByDoctorID(doctorID uint, limit, offset int) ([]entities.Patient, *errors.AppError) {
 	op := "repo.ReceptionHospital.GetPatientsByDoctorID"
 
@@ -201,4 +163,175 @@ func (r *ReceptionHospitalRepositoryImpl) GetPatientsByDoctorID(doctorID uint, l
 	}
 
 	return patients, nil
+}
+
+func (r *ReceptionHospitalRepositoryImpl) GetReceptionsHospitalByDoctorAndDate(
+	doctorID uint,
+	date time.Time,
+	page, perPage int,
+) ([]entities.ReceptionHospital, int64, error) {
+	op := "repo.ReceptionHospital.GetPatientsByDoctorID"
+	var receptions []entities.ReceptionHospital
+	var total int64
+
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	baseQuery := r.db.
+		Model(&entities.ReceptionHospital{}).
+		Where("doctor_id = ? AND date >= ? AND date < ?", doctorID, startOfDay, endOfDay)
+
+	if err := baseQuery.Count(&total).Error; err != nil {
+		return nil, 0, errors.NewDBError(op, err)
+	}
+
+	offset := (page - 1) * perPage
+	err := baseQuery.
+		Preload("Patient").
+		Preload("Doctor.Specialization").
+		Offset(offset).
+		Limit(perPage).
+		Order(getOrderByStatusAndDate()).
+		Find(&receptions).
+		Error
+
+	if err != nil {
+		return nil, 0, errors.NewDBError(op, err)
+	}
+
+	// Декодируем JSONB данные для каждого приема
+	for i := range receptions {
+		if receptions[i].SpecializationData.Status == pgtype.Present && receptions[i].Doctor.Specialization.Title != "" {
+			var specData interface{}
+
+			switch receptions[i].Doctor.Specialization.Title {
+			case "Терапевт":
+				specData = &entities.TherapistData{}
+			case "Кардиолог":
+				specData = &entities.CardiologistData{}
+			case "Невролог":
+				specData = &entities.NeurologistData{}
+			case "Травматолог":
+				specData = &entities.TraumatologistData{}
+			default:
+				// Для неизвестных специализаций используем generic map
+				var genericData map[string]interface{}
+				if err := receptions[i].SpecializationData.AssignTo(&genericData); err == nil {
+					receptions[i].SpecializationDataDecoded = genericData
+				}
+				continue
+			}
+
+			if err := receptions[i].SpecializationData.AssignTo(specData); err == nil {
+				receptions[i].SpecializationDataDecoded = specData
+			} else {
+				// log.Printf("Failed to decode specialization data for reception %d: %v",
+				//     receptions[i].ID, err)
+				errors.NewDBError(op, err)
+			}
+		}
+	}
+
+	return receptions, total, nil
+}
+
+func (r *ReceptionHospitalRepositoryImpl) GetAllPatientsFromHospitalByDocID(
+	docID uint,
+	page, count int,
+	queryFilter string,
+	parameters []interface{},
+) ([]entities.Patient, int64, error) {
+	var receptions []entities.ReceptionHospital
+
+	// Шаг 1: Получаем все приёмы по доктору с подгрузкой пациентов
+	if err := r.db.
+		Preload("Patient", func(db *gorm.DB) *gorm.DB {
+			return db.Where(queryFilter, parameters...)
+		}).
+		Where("doctor_id = ?", docID).
+		Find(&receptions).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to fetch receptions by doctor: %w", err)
+	}
+
+	// Шаг 2: Уникальные пациенты
+	patientsMap := make(map[uint]entities.Patient)
+	for _, reception := range receptions {
+		if reception.Patient.ID != 0 {
+			patientsMap[reception.Patient.ID] = reception.Patient
+		}
+	}
+
+	// Шаг 3: Преобразуем map -> слайс
+	patients := make([]entities.Patient, 0, len(patientsMap))
+	for _, patient := range patientsMap {
+		patients = append(patients, patient)
+	}
+
+	totalRecords := int64(len(patients))
+
+	// Шаг 5: Пагинация
+	if page > 0 && count > 0 {
+		offset := (page - 1) * count
+		end := offset + count
+		if offset > len(patients) {
+			return []entities.Patient{}, totalRecords, nil
+		}
+		if end > len(patients) {
+			end = len(patients)
+		}
+		patients = patients[offset:end]
+	}
+
+	return patients, totalRecords, nil
+}
+
+func (r *ReceptionHospitalRepositoryImpl) GetAllPatientsFromHospital(page, count int, queryFilter string, parameters []interface{}) ([]entities.Patient, int64, error) {
+	var receptions []entities.ReceptionHospital
+	var totalRecords int64
+
+	// Создаем базовый запрос
+	query := r.db.Model(&entities.ReceptionHospital{})
+
+	// Применяем фильтрацию
+	if queryFilter != "" {
+		query = query.Where(queryFilter, parameters...)
+	}
+
+	// Считаем общее количество записей
+	countQuery := r.db.Model(&entities.ReceptionHospital{}).Select("COUNT(DISTINCT patient_id)")
+	if queryFilter != "" {
+		countQuery = countQuery.Where(queryFilter, parameters...)
+	}
+	if err := countQuery.Count(&totalRecords).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count unique patients: %w", err)
+	}
+
+	// Применяем пагинацию
+	if page > 0 && count > 0 {
+		offset := (page - 1) * count
+		query = query.Offset(offset).Limit(count)
+	}
+
+	// Загружаем приёмы с пациентами
+	if err := query.
+		Preload("Patient").
+		Find(&receptions).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to fetch hospital receptions: %w", err)
+	}
+
+	// Извлекаем пациентов из результатов
+	patientsMap := make(map[uint]entities.Patient)
+	for _, reception := range receptions {
+		if reception.Patient.ID != 0 {
+			patientsMap[reception.Patient.ID] = reception.Patient
+		}
+	}
+
+	// Преобразуем map в слайс без дубликатов
+	patients := make([]entities.Patient, 0, len(patientsMap))
+	for _, patient := range patientsMap {
+		patients = append(patients, patient)
+	}
+
+	return patients, totalRecords, nil
 }

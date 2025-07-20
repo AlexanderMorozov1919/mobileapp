@@ -1,9 +1,12 @@
 package receptionSmp
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
+	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -54,7 +57,7 @@ func (r *ReceptionSmpRepositoryImpl) GetReceptionSmpByID(id uint) (entities.Rece
 	op := "repo.ReceptionSmp.GetReceptionSmpByID"
 
 	var reception entities.ReceptionSMP
-	if err := r.db.First(&reception, id).Error; err != nil {
+	if err := r.db.Preload("MedServices").First(&reception, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entities.ReceptionSMP{}, errors.NewNotFoundError("reception not found")
 		}
@@ -93,33 +96,61 @@ func (r *ReceptionSmpRepositoryImpl) GetReceptionSmpByDateRange(start, end time.
 	return receptions, nil
 }
 
-func getReceptionPriority(status entities.ReceptionStatus) int {
-	switch status {
-	case entities.StatusScheduled:
-		return 1
-	case entities.StatusCompleted:
-		return 2
-	case entities.StatusCancelled, entities.StatusNoShow:
-		return 3
-	default:
-		return 4
+func (r *ReceptionSmpRepositoryImpl) UpdateReceptionSmpMedServices(receptionID uint, services []entities.MedService) error {
+	if len(services) == 0 {
+		return nil
 	}
+	// Получаем ID всех услуг для проверки их существования
+	serviceIDs := make([]uint, len(services))
+	for i, s := range services {
+		serviceIDs[i] = s.ID
+	}
+
+	// Проверяем что все услуги существуют
+	var count int64
+	if err := r.db.Model(&entities.MedService{}).Where("id IN ?", serviceIDs).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to check med services existence: %v", err)
+	}
+	if int(count) != len(serviceIDs) {
+		return fmt.Errorf("some med services not found")
+	}
+
+	tx := r.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Удаляем старые связи
+	if err := tx.Exec("DELETE FROM reception_smp_med_services WHERE reception_smp_id = ?", receptionID).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete existing med services: %v", err)
+	}
+
+	// Создаём batch для вставки
+	var inserts []map[string]interface{}
+	for _, id := range serviceIDs {
+		inserts = append(inserts, map[string]interface{}{
+			"reception_smp_id": receptionID,
+			"med_service_id":   id,
+		})
+	}
+
+	// Вставляем новые связи batch-ом
+	if err := tx.Table("reception_smp_med_services").Create(inserts).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to insert new med services: %v", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	return nil
 }
 
-func getOrderByStatusAndDate() string {
-	return `
-        CASE 
-            WHEN status = 'emergency' THEN 1
-            WHEN status = 'scheduled' THEN 2
-            WHEN status = 'completed' THEN 3
-            WHEN status = 'cancelled' THEN 4
-            ELSE 5
-        END,
-        date ASC
-    `
-}
-
-// Repository
+// Обновленные методы репозитория
 func (r *ReceptionSmpRepositoryImpl) GetWithPatientsByEmergencyCallID(
 	emergencyCallID uint,
 	page, perPage int,
@@ -128,21 +159,18 @@ func (r *ReceptionSmpRepositoryImpl) GetWithPatientsByEmergencyCallID(
 	var receptions []entities.ReceptionSMP
 	var total int64
 
-	// Базовый запрос с условием
 	baseQuery := r.db.Model(&entities.ReceptionSMP{}).
 		Where("emergency_call_id = ?", emergencyCallID)
 
-	// Считаем общее количество записей
 	if err := baseQuery.Count(&total).Error; err != nil {
 		return nil, 0, errors.NewDBError(op, err)
 	}
 
-	// Получаем данные с пагинацией
 	offset := (page - 1) * perPage
 	err := baseQuery.
 		Preload("Patient").
-		Preload("Patient.PersonalInfo").
-		Preload("Patient.ContactInfo").
+		Preload("MedServices").
+		Preload("Doctor.Specialization").
 		Order("created_at DESC").
 		Offset(offset).
 		Limit(perPage).
@@ -153,23 +181,86 @@ func (r *ReceptionSmpRepositoryImpl) GetWithPatientsByEmergencyCallID(
 		return nil, 0, errors.NewDBError(op, err)
 	}
 
+	// Декодируем JSONB данные
+	for i := range receptions {
+		if receptions[i].SpecializationData.Status == pgtype.Present {
+			decodedData, err := decodeSpecializationData(
+				receptions[i].SpecializationData,
+				receptions[i].Doctor.Specialization.Title,
+			)
+			if err != nil {
+				log.Printf("Failed to decode data for reception %d: %v", receptions[i].ID, err)
+				continue
+			}
+			receptions[i].SpecializationDataDecoded = decodedData
+		}
+	}
+
 	return receptions, total, nil
 }
 
-func (r *ReceptionSmpRepositoryImpl) GetReceptionWithMedServicesByID(id uint) (entities.ReceptionSMP, error) {
+func (r *ReceptionSmpRepositoryImpl) GetReceptionWithMedServicesByID(
+	smpID uint,
+	callID uint,
+) (entities.ReceptionSMP, error) {
+	op := "repo.ReceptionSmp.GetReceptionWithMedServicesByID"
 	var reception entities.ReceptionSMP
-	op := "repo.ReceptionSmp.DeleteReceptionSmp"
-	err := r.db.
+
+	query := r.db.
 		Preload("Patient").
 		Preload("MedServices").
-		First(&reception, id).
-		Error
+		Preload("Doctor.Specialization").
+		Where("id = ?", smpID)
 
+	if callID > 0 {
+		query = query.Where("emergency_call_id = ?", callID)
+	}
+
+	err := query.First(&reception).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entities.ReceptionSMP{}, errors.NewDBError(op, err)
+			return entities.ReceptionSMP{}, errors.NewNotFoundError("reception not found")
+		}
+		return entities.ReceptionSMP{}, errors.NewDBError(op, err)
+	}
+
+	// Декодируем JSONB данные
+	if reception.SpecializationData.Status == pgtype.Present {
+		decodedData, err := decodeSpecializationData(
+			reception.SpecializationData,
+			reception.Doctor.Specialization.Title,
+		)
+		if err != nil {
+			log.Printf("Failed to decode data for reception %d: %v", reception.ID, err)
+		} else {
+			reception.SpecializationDataDecoded = decodedData
 		}
 	}
 
 	return reception, nil
+}
+
+// Вспомогательная функция для декодирования
+func decodeSpecializationData(data pgtype.JSONB, specialization string) (interface{}, error) {
+	op := "repo.ReceptionSmp.decodeSpecializationData"
+	var result interface{}
+
+	switch specialization {
+	case "Терапевт":
+		result = &entities.TherapistData{}
+	case "Кардиолог":
+		result = &entities.CardiologistData{}
+	case "Невролог":
+		result = &entities.NeurologistData{}
+	case "Травматолог":
+		result = &entities.TraumatologistData{}
+	default:
+		result = make(map[string]interface{})
+	}
+
+	if err := data.AssignTo(result); err != nil {
+		return nil, errors.NewDBError(op, err)
+	}
+
+	return result, nil
 }
