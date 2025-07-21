@@ -33,6 +33,21 @@
 - PostgreSQL 14+
 - Git
 
+**Файл окружения:**
+```.env
+# Database settings
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=medapp
+
+# App settings
+APP_PORT=8080
+JWT_SECRET=your_strong_jwt_secret_here
+GIN_MODE=debug
+```
+
 **Запуск на Windows:**
 ``` PowerShell
 git clone https://github.com/AlexanderMorozov1919/mobileapp.git
