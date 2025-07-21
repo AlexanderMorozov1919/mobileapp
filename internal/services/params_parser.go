@@ -42,7 +42,7 @@ func (s *ParamsParser) ParseTimeString(timeStr string) (time.Time, error) {
 	return parsedTime, nil
 }
 
-func (s *ParamsParser) ParseUintString(uintStr string) (uint64, error) {
+func (s *ParamsParser) ParseUintString(uintStr string) (uint, error) {
 	uintStr = strings.TrimSpace(uintStr)
 	if uintStr == "" {
 		return 0, fmt.Errorf("empty string provided, expected unsigned integer")
@@ -53,7 +53,21 @@ func (s *ParamsParser) ParseUintString(uintStr string) (uint64, error) {
 		return 0, fmt.Errorf("invalid uint format, expected unsigned integer: %v", err)
 	}
 
-	return value, nil
+	return uint(value), nil
+}
+
+func (s *ParamsParser) ParseIntString(intStr string) (int, error) {
+	intStr = strings.TrimSpace(intStr)
+	if intStr == "" {
+		return 0, fmt.Errorf("empty string provided, expected integer")
+	}
+
+	value, err := strconv.ParseInt(intStr, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid int format, expected signed integer: %v", err)
+	}
+
+	return int(value), nil
 }
 
 func (s *ParamsParser) FormatDateToString(t time.Time) string {

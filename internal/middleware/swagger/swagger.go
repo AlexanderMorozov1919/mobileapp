@@ -18,6 +18,5 @@ func Setup(r *gin.Engine, cfg *Config) {
 		return
 	}
 
-	// Добавляем обработчик для Swagger UI
 	r.GET(cfg.Path+"/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

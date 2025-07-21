@@ -68,6 +68,8 @@ func Is(err any, err2 error) bool {
 	return false
 }
 
-func NewNotFoundError(s string) *AppError {
-	return &AppError{}
+var ErrNotFound = errors.New("not found")
+
+func NewNotFoundError(message string) error {
+	return fmt.Errorf("%w: %s", ErrNotFound, message)
 }

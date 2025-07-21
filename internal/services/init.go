@@ -10,7 +10,6 @@ type Service struct {
 }
 
 func NewService() interfaces.Service {
-	//logger := logging.NewLogger("SERVICES", "GENERAL", parentLogger)
 	parser := NewParamsParser()
 	return Service{
 		parser,

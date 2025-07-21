@@ -18,40 +18,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/patient/allergy": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "allergy"
-                ],
-                "summary": "Добавить аллергию пациенту",
-                "parameters": [
-                    {
-                        "description": "Данные аллергии",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.AddAllergyRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Добавленная аллергия",
-                        "schema": {
-                            "$ref": "#/definitions/models.AllergyResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/login": {
+        "/auth": {
             "post": {
                 "description": "Аутентифицирует врача по номеру телефона и паролю",
                 "consumes": [
@@ -61,7 +28,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
                 "summary": "Вход в систему",
                 "parameters": [
@@ -106,7 +73,55 @@ const docTemplate = `{
                 }
             }
         },
-        "/doctor": {
+        "/doctors/{doc_id}": {
+            "get": {
+                "description": "Возвращает данные врача по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctor"
+                ],
+                "summary": "Получить врача по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID врача",
+                        "name": "doc_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Данные врача",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Doctor"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Врач не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "Обновляет информацию о враче",
                 "consumes": [
@@ -131,7 +146,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Обновленный врач",
                         "schema": {
                             "$ref": "#/definitions/entities.Doctor"
@@ -162,157 +177,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "Создает нового врача с указанными данными",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Doctor"
-                ],
-                "summary": "Создать нового врача",
-                "parameters": [
-                    {
-                        "description": "Данные врача",
-                        "name": "info",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.CreateDoctorRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Созданный врач",
-                        "schema": {
-                            "$ref": "#/definitions/entities.Doctor"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный запрос",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка валидации",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
             }
         },
-        "/doctor/{id}": {
-            "get": {
-                "description": "Возвращает информацию о враче по ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Doctor"
-                ],
-                "summary": "Получить врача по ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID врача",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Информация о враче",
-                        "schema": {
-                            "$ref": "#/definitions/entities.Doctor"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Врач не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Удаляет врача по ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Doctor"
-                ],
-                "summary": "Удалить врача",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID врача",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешное удаление",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Врач не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/emergency/{doctor_id}/receptions": {
+        "/emergency/{doctor_id}": {
             "get": {
                 "description": "Возвращает список экстренных приёмов, назначенных врачу на указанную дату, с пагинацией",
                 "consumes": [
@@ -322,7 +189,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EmergencyReception"
+                    "EmergencyCall"
                 ],
                 "summary": "Получить экстренные приёмы врача по дате",
                 "parameters": [
@@ -373,424 +240,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/medcard": {
-            "put": {
-                "description": "Обновляет информацию о враче",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Doctor"
-                ],
-                "summary": "Обновить данные врача",
-                "parameters": [
-                    {
-                        "description": "Данные для обновления",
-                        "name": "info",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UpdateDoctorRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Обновленный врач",
-                        "schema": {
-                            "$ref": "#/definitions/entities.Doctor"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный запрос",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Врач не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка валидации",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/medcard/{id}": {
-            "get": {
-                "description": "Возвращает медкарту по ID Пациента",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MedCard"
-                ],
-                "summary": "Получить медкарту по ID Пациента",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID пациента",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Медкарта",
-                        "schema": {
-                            "$ref": "#/definitions/models.MedCardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Медкарта не найдена",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/patient": {
-            "put": {
-                "description": "Обновляет информацию о пациенте",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Patient"
-                ],
-                "summary": "Обновить данные пациента",
-                "parameters": [
-                    {
-                        "description": "Данные для обновления",
-                        "name": "info",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UpdatePatientRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Обновленный пациент",
-                        "schema": {
-                            "$ref": "#/definitions/entities.Patient"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный запрос",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Пациент не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка валидации",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Создает нового пациента с персональными и контактными данными",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Patient"
-                ],
-                "summary": "Создать нового пациента",
-                "parameters": [
-                    {
-                        "description": "Данные пациента",
-                        "name": "info",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.CreatePatientRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Созданный пациент",
-                        "schema": {
-                            "$ref": "#/definitions/entities.Patient"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный запрос",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка валидации данных",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/patient/{id}": {
-            "get": {
-                "description": "Возвращает полную информацию о пациенте",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Patient"
-                ],
-                "summary": "Получить пациента по ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID пациента",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Информация о пациенте",
-                        "schema": {
-                            "$ref": "#/definitions/entities.Patient"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Пациент не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Удаляет пациента по ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Patient"
-                ],
-                "summary": "Удалить пациента",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID пациента",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Успешное удаление",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Пациент не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/patient/{patient_id}/allergies": {
-            "get": {
-                "description": "Возвращает список аллергий пациента",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Allergy"
-                ],
-                "summary": "Получить аллергии пациента",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID пациента",
-                        "name": "patient_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список аллергий",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.AllergyResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Пациент не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/patient/{patient_id}/contact-info": {
-            "get": {
-                "description": "Возвращает контактные данные пациента по ID пациента",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ContactInfo"
-                ],
-                "summary": "Получить контактные данные пациента",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID пациента",
-                        "name": "patient_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Контактные данные",
-                        "schema": {
-                            "$ref": "#/definitions/entities.ContactInfo"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID пациента",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "404": {
-                        "description": "Данные не найдены",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/reception/{id}": {
+        "/hospital/patients/{pat_id}": {
             "get": {
                 "description": "Возвращает информацию о приёме",
                 "consumes": [
@@ -802,7 +252,7 @@ const docTemplate = `{
                 "tags": [
                     "Reception"
                 ],
-                "summary": "Получить приём по ID",
+                "summary": "Получить список приёмов пациента по его ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -840,9 +290,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/receptions/doctor/{doctor_id}": {
+        "/hospital/{doc_id}": {
             "get": {
-                "description": "Get paginated list of receptions for specific doctor and date",
+                "description": "Возвращает информацию о приёме",
                 "consumes": [
                     "application/json"
                 ],
@@ -850,29 +300,75 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "receptions"
+                    "Reception"
                 ],
-                "summary": "Get receptions by doctor and date",
+                "summary": "Получить приём по доктору",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Doctor ID",
-                        "name": "doctor_id",
+                        "description": "ID доктора",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о приёме",
+                        "schema": {
+                            "$ref": "#/definitions/entities.ReceptionHospital"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Приём не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            }
+        },
+        "/hospital/{recep_id}": {
+            "put": {
+                "description": "Обновляет информацию о приёе в больнице",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reception"
+                ],
+                "summary": "Обновить приём в больнице",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID приёма",
+                        "name": "recep_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Date in YYYY-MM-DD format",
-                        "name": "date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
+                        "description": "Данные для обновления",
+                        "name": "info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateReceptionHospitalRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -881,7 +377,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.ReceptionShortResponse"
+                                "$ref": "#/definitions/entities.ReceptionHospital"
                             }
                         }
                     },
@@ -896,6 +392,547 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/medcard/{pat_id}": {
+            "get": {
+                "description": "Возвращает полную информацию из медицинской карты пациента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Medcard"
+                ],
+                "summary": "Получить медкарту по ID пациента",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Медицинская карта пациента",
+                        "schema": {
+                            "$ref": "#/definitions/models.MedCardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID пациента",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Медкарта не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Обновляет информацию в медицинской карте пациента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Medcard"
+                ],
+                "summary": "Обновить данные медицинской карты",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления медкарты",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateMedCardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Обновленная медицинская карта",
+                        "schema": {
+                            "$ref": "#/definitions/models.MedCardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Медкарта не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибка валидации данных",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            }
+        },
+        "/patients": {
+            "get": {
+                "description": "Возвращает список пациентов с возможностью пагинации и фильтрации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patient"
+                ],
+                "summary": "Получить список пациентов",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы (по умолчанию 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество записей на странице (по умолчанию 0 — без ограничения)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр в формате field.operation.value. Примеры: full_name.like.Анна, birth_date.eq.1988-07-14",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список пациентов",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Создает нового пациента с персональными и контактными данными",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patient"
+                ],
+                "summary": "Создать нового пациента",
+                "parameters": [
+                    {
+                        "description": "Данные пациента",
+                        "name": "info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePatientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Созданный пациент",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибка валидации данных",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{pat_id}": {
+            "get": {
+                "description": "Возвращает полную информацию о пациенте",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patient"
+                ],
+                "summary": "Получить пациента по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о пациенте",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Пациент не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Обновляет информацию о пациенте",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patient"
+                ],
+                "summary": "Обновить данные пациента",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления",
+                        "name": "info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePatientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Обновленный пациент",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Пациент не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удаляет пациента по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patient"
+                ],
+                "summary": "Удалить пациента",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пациента",
+                        "name": "pat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное удаление",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Пациент не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            }
+        },
+        "/smp/{doctor_id}/receptions": {
+            "get": {
+                "description": "Возвращает список приёмов скорой медицинской помощи для указанного врача с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SMP"
+                ],
+                "summary": "Получить СМП приёмы врача по дате",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID врача",
+                        "name": "doctor_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество записей на страницу",
+                        "name": "perPage",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о приёме скорой помощи",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.ReceptionSMP"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            }
+        },
+        "/smp/{smp_id}": {
+            "get": {
+                "description": "Возвращает информацию о приёме скорой медицинской помощи вместе со списком медицинских услуг",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SMP"
+                ],
+                "summary": "Получить приём СМП с медуслугами по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID приёма СМП",
+                        "name": "smp_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о приёме и медуслугах",
+                        "schema": {
+                            "$ref": "#/definitions/entities.MedService"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Приём не найден",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Возвращает созданное заключение",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SMP"
+                ],
+                "summary": "Создать заключение на скорой",
+                "responses": {
+                    "200": {
+                        "description": "Заключение для пациента",
+                        "schema": {
+                            "$ref": "#/definitions/entities.ReceptionSMP"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "404": {
+                        "description": "Переданные данные некорекктны",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -981,8 +1018,7 @@ const docTemplate = `{
                     }
                 },
                 "specialization": {
-                    "type": "string",
-                    "example": "Терапевт"
+                    "$ref": "#/definitions/entities.Specialization"
                 },
                 "updated_at": {
                     "type": "string"
@@ -994,7 +1030,7 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string",
-                    "example": "Москва, ул. Ленина, д. 15"
+                    "example": "+79991234567"
                 },
                 "created_at": {
                     "type": "string"
@@ -1026,7 +1062,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/entities.EmergencyStatus"
                         }
                     ],
-                    "example": "in_progress"
+                    "example": "scheduled"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1116,6 +1152,10 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "on_treatment": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "personal_info": {
                     "$ref": "#/definitions/entities.PersonalInfo"
                 },
@@ -1178,18 +1218,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "ОРВИ"
                 },
-                "doctor": {
-                    "$ref": "#/definitions/entities.Doctor"
-                },
                 "doctor_id": {
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
                     "type": "integer"
-                },
-                "patient": {
-                    "$ref": "#/definitions/entities.Patient"
                 },
                 "patient_id": {
                     "type": "integer",
@@ -1199,6 +1233,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Постельный режим"
                 },
+                "specialization_data": {
+                    "description": "Специализированные данные",
+                    "type": "object"
+                },
+                "specialization_data_decoded": {},
                 "status": {
                     "allOf": [
                         {
@@ -1247,6 +1286,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Постельный режим"
                 },
+                "specialization_data": {
+                    "description": "Специализированные данные",
+                    "type": "object"
+                },
+                "specialization_data_decoded": {},
                 "updated_at": {
                     "type": "string"
                 }
@@ -1260,18 +1304,24 @@ const docTemplate = `{
                 "cancelled",
                 "no_show"
             ],
-            "x-enum-comments": {
-                "StatusCancelled": "\"Отменен\"",
-                "StatusCompleted": "\"Завершен\"",
-                "StatusNoShow": "\"Не явился\"",
-                "StatusScheduled": "\"Запланирован\""
-            },
             "x-enum-varnames": [
                 "StatusScheduled",
                 "StatusCompleted",
                 "StatusCancelled",
                 "StatusNoShow"
             ]
+        },
+        "entities.Specialization": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Терапевт"
+                }
+            }
         },
         "handlers.ResultError": {
             "type": "object",
@@ -1324,27 +1374,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.AddAllergyRequest": {
-            "description": "Запрос для добавления аллергии пациенту",
-            "type": "object",
-            "properties": {
-                "allergy_id": {
-                    "description": "ID аллергии",
-                    "type": "integer",
-                    "example": 5
-                },
-                "description": {
-                    "description": "Описание аллергии",
-                    "type": "string",
-                    "example": "Аллергия на пыльцу"
-                },
-                "patient_id": {
-                    "description": "ID пациента",
-                    "type": "integer",
-                    "example": 1
-                }
-            }
-        },
         "models.AllergyResponse": {
             "description": "Ответ с названием аллергии",
             "type": "object",
@@ -1377,44 +1406,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CreateDoctorRequest": {
-            "description": "Используется для регистрации нового врача в системе",
-            "type": "object",
-            "required": [
-                "email",
-                "full_name",
-                "login",
-                "password",
-                "specialization"
-            ],
-            "properties": {
-                "email": {
-                    "description": "Email (обязательное)",
-                    "type": "string",
-                    "example": "doctor@example.com"
-                },
-                "full_name": {
-                    "description": "ФИО врача (обязательное)",
-                    "type": "string",
-                    "example": "Иванов Иван Иванович"
-                },
-                "login": {
-                    "description": "Логин (обязательное)",
-                    "type": "string",
-                    "example": "+79123456789"
-                },
-                "password": {
-                    "description": "Пароль (обязательное)",
-                    "type": "string",
-                    "example": "qwerty123"
-                },
-                "specialization": {
-                    "description": "Специализация (обязательное)",
-                    "type": "string",
-                    "example": "Терапевт"
-                }
-            }
-        },
         "models.CreatePatientRequest": {
             "description": "Данные для создания нового пациента",
             "type": "object",
@@ -1440,19 +1431,19 @@ const docTemplate = `{
             "description": "Запрос для входа врача в систему",
             "type": "object",
             "required": [
-                "login",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
-                "login": {
-                    "description": "Логин (телефон)",
-                    "type": "string",
-                    "example": "+79123456789"
-                },
                 "password": {
                     "description": "Пароль",
                     "type": "string",
-                    "example": "qwerty123"
+                    "example": "password1"
+                },
+                "username": {
+                    "description": "Логин (телефон)",
+                    "type": "string",
+                    "example": "doctor1"
                 }
             }
         },
@@ -1514,38 +1505,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ReceptionShortResponse": {
-            "description": "Содержит основные данные приема для отображения в списках",
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string",
-                    "example": "Москва, ул. Ленина, д. 15"
-                },
-                "date": {
-                    "description": "Форматированная дата приема",
-                    "type": "string",
-                    "example": "15.10.2023 14:30"
-                },
-                "diagnosis": {
-                    "type": "string",
-                    "example": "ОРВИ"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "patient_name": {
-                    "description": "ФИО пациента",
-                    "type": "string",
-                    "example": "Иванов Иван"
-                },
-                "status": {
-                    "description": "Текстовый статус приема",
-                    "type": "string",
-                    "example": "Запланирован"
-                }
-            }
-        },
         "models.ShortPatientResponse": {
             "description": "Сокращенные данные пациента",
             "type": "object",
@@ -1575,11 +1534,6 @@ const docTemplate = `{
             "description": "Используется для изменения информации о враче",
             "type": "object",
             "properties": {
-                "email": {
-                    "description": "Новый email",
-                    "type": "string",
-                    "example": "doctor@example.com"
-                },
                 "full_name": {
                     "description": "Новое ФИО",
                     "type": "string",
@@ -1600,10 +1554,47 @@ const docTemplate = `{
                     "type": "string",
                     "example": "newpassword123"
                 },
-                "specialization": {
+                "specialization_id": {
                     "description": "Новая специализация",
-                    "type": "string",
-                    "example": "Хирург"
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "models.UpdateMedCardRequest": {
+            "description": "Содержит всю медицинскую информацию о пациенте",
+            "type": "object",
+            "properties": {
+                "allergy": {
+                    "description": "Список аллергий",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AllergyResponse"
+                    }
+                },
+                "contact_info": {
+                    "description": "Контактные данные",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ContactInfoResponse"
+                        }
+                    ]
+                },
+                "patient": {
+                    "description": "Основные данные пациента",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ShortPatientResponse"
+                        }
+                    ]
+                },
+                "personal_info": {
+                    "description": "Персональная информация",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.PersonalInfoResponse"
+                        }
+                    ]
                 }
             }
         },
@@ -1630,6 +1621,30 @@ const docTemplate = `{
                     "description": "Пол (true - мужской)",
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "models.UpdateReceptionHospitalRequest": {
+            "type": "object",
+            "properties": {
+                "diagnosis": {
+                    "type": "string",
+                    "example": "Грипп"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "recommendations": {
+                    "type": "string",
+                    "example": "Постельный режим"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entities.ReceptionStatus"
+                        }
+                    ],
+                    "example": "scheduled"
                 }
             }
         }

@@ -9,3 +9,8 @@ type EmergencyCallMedServicesResponse struct {
 	Diagnosis       string           `json:"diagnosis"`       // Поставленный диагноз
 	Recommendations string           `json:"recommendations"` // Рекомендации врача
 }
+
+type MedServicesResponse struct {
+	Name  string `json:"name" example:"EKG"`
+	Price uint   `json:"price" example:"100"`
+}

@@ -2,12 +2,15 @@ package usecases
 
 import (
 	"fmt"
+	"math"
+	"net/http"
+	"time"
+
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
 	"gorm.io/gorm"
-	"time"
 )
 
 type PatientUsecase struct {
@@ -16,8 +19,7 @@ type PatientUsecase struct {
 }
 
 func NewPatientUsecase(repo interfaces.PatientRepository, s interfaces.Service) interfaces.PatientUsecase {
-	return &PatientUsecase{repo: repo,
-		FilterBuilder: s}
+	return &PatientUsecase{repo: repo, FilterBuilder: s}
 }
 
 func (u *PatientUsecase) CreatePatient(input *models.CreatePatientRequest) (entities.Patient, *errors.AppError) {
@@ -47,13 +49,23 @@ func (u *PatientUsecase) CreatePatient(input *models.CreatePatientRequest) (enti
 }
 
 func (u *PatientUsecase) GetPatientByID(id uint) (entities.Patient, *errors.AppError) {
-
 	patient, err := u.repo.GetPatientByID(id)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entities.Patient{}, errors.NewNotFoundError("patient not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, errors.ErrNotFound) {
+			return entities.Patient{}, errors.NewAppError(
+				http.StatusNotFound,
+				"Пациент не найден",
+				nil,
+				true,
+			)
 		}
-		return entities.Patient{}, errors.NewAppError(errors.InternalServerErrorCode, errors.InternalServerError, err, false)
+
+		return entities.Patient{}, errors.NewAppError(
+			errors.InternalServerErrorCode,
+			errors.InternalServerError,
+			err,
+			false,
+		)
 	}
 	return patient, nil
 }
@@ -93,21 +105,22 @@ func (u *PatientUsecase) DeletePatient(id uint) *errors.AppError {
 	return nil
 }
 
-func (u *PatientUsecase) GetAllPatients(limit, offset int, filter string) ([]entities.Patient, *errors.AppError) {
+func (u *PatientUsecase) GetAllPatients(page, count int, filter string) (models.FilterResponse[[]entities.Patient], *errors.AppError) {
 	var queryFilter string
 	var parameters []interface{}
+	empty := models.FilterResponse[[]entities.Patient]{}
 
 	// Статические поля модели (имя таблицы/колонки и их типы)
 	entityFields, err := getFieldTypes(entities.Patient{})
 	if err != nil {
-		return nil, errors.NewAppError(errors.InternalServerErrorCode, errors.InternalServerError, err, false)
+		return empty, errors.NewAppError(errors.InternalServerErrorCode, errors.InternalServerError, err, false)
 	}
 
 	// Парсим фильтр, если он передан
 	if len(filter) > 0 {
 		subQuery, params, err := u.FilterBuilder.ParseFilterString(filter, entityFields)
 		if err != nil {
-			return nil, errors.NewAppError(
+			return empty, errors.NewAppError(
 				errors.InvalidDataCode,
 				fmt.Sprintf("invalid filter syntax: %s", err.Error()),
 				nil,
@@ -119,15 +132,25 @@ func (u *PatientUsecase) GetAllPatients(limit, offset int, filter string) ([]ent
 	}
 
 	// Получение пациентов
-	patients, err := u.repo.GetAllPatients(limit, offset, queryFilter, parameters)
+	patients, totalRows, err := u.repo.GetAllPatients(page, count, queryFilter, parameters)
 	if err != nil {
-		return nil, errors.NewAppError(
-			errors.InternalServerErrorCode,
-			"failed to get patients",
-			err,
-			true,
-		)
+		return empty, errors.NewAppError(errors.InternalServerErrorCode, "failed to get patients", err, true)
 	}
 
-	return patients, nil
+	var totalPages int
+	if count == 0 {
+		// Если count == 0, то пагинация отключена, и все записи возвращаются на одной странице
+		totalPages = 1
+	} else {
+		// Вычисляем количество страниц с округлением вверх
+		totalPages = int(math.Ceil(float64(totalRows) / float64(count)))
+	}
+
+	return models.FilterResponse[[]entities.Patient]{
+		Hits:        patients,
+		CurrentPage: page,
+		HitsPerPage: len(patients),
+		TotalHits:   int(totalRows),
+		TotalPages:  totalPages,
+	}, nil
 }

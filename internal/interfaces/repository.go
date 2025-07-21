@@ -4,10 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
-
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
-	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 )
 
 type Repository interface {
@@ -32,7 +29,7 @@ type DoctorRepository interface {
 	GetDoctorName(id uint) (string, error)
 	GetDoctorByLogin(login string) (entities.Doctor, error)
 
-	GetDoctorSpecialization(id uint) (string, error)
+	// GetDoctorSpecialization(id uint) (string, error)
 	GetDoctorPassHash(id uint) (string, error)
 }
 
@@ -81,12 +78,13 @@ type ReceptionSmpRepository interface {
 	CreateReceptionSmp(reception entities.ReceptionSMP) (uint, error)
 	UpdateReceptionSmp(id uint, updateMap map[string]interface{}) (uint, error)
 	DeleteReceptionSmp(id uint) error
-
+	UpdateReceptionSmpMedServices(receptionID uint, services []entities.MedService) error
+	GetReceptionWithMedServicesByID(smp_id uint, call_id uint) (entities.ReceptionSMP, error)
 	GetReceptionSmpByID(id uint) (entities.ReceptionSMP, error)
 	GetReceptionSmpByDoctorID(doctorID uint) ([]entities.ReceptionSMP, error)
 	GetReceptionSmpByPatientID(patientID uint) ([]entities.ReceptionSMP, error)
 	GetReceptionSmpByDateRange(start, end time.Time) ([]entities.ReceptionSMP, error)
-	GetReceptionsSmpByDoctorAndDate(doctorID uint, date time.Time, page, perPage int) ([]models.ReceptionShortResponse, error)
+	GetWithPatientsByEmergencyCallID(emergencyCallID uint, page, perPage int) ([]entities.ReceptionSMP, int64, error)
 }
 
 // updated to match the new structure
@@ -95,12 +93,13 @@ type ReceptionHospitalRepository interface {
 	UpdateReceptionHospital(id uint, updateMap map[string]interface{}) (uint, error)
 	DeleteReceptionHospital(id uint) error
 
+	// Работают с пагинацией и фильтрацией по возращаемой структуре
+	GetAllPatientsFromHospital(page, count int, queryFilter string, parameters []interface{}) ([]entities.Patient, int64, error)
+	GetAllPatientsFromHospitalByDoctorID(doc_id uint, page, count int, queryFilter string, queryOrder string, parameters []interface{}) ([]entities.Patient, int64, error)
+	GetAllHospitalReceptionsByDoctorID(doc_id uint, page, count int, queryFilter string, queryOrder string, parameters []interface{}) ([]entities.ReceptionHospital, int64, error)
+	GetAllHospitalReceptionsByPatientID(patientID uint, page, count int, queryFilter string, queryOrder string, parameters []interface{}) ([]entities.ReceptionHospital, int64, error)
+
 	GetReceptionHospitalByID(id uint) (entities.ReceptionHospital, error)
-	GetReceptionHospitalByDoctorID(doctorID uint) ([]entities.ReceptionHospital, error)
-	GetReceptionHospitalByPatientID(patientID uint) ([]entities.ReceptionHospital, error)
-	GetReceptionsHospitalByDateRange(start, end time.Time) ([]entities.ReceptionHospital, error)
-	GetReceptionsHospitalByDoctorAndDate(doctorID uint, date time.Time, page, perPage int) ([]entities.ReceptionHospital, int64, error)
-	GetPatientsByDoctorID(doctorID uint, limit, offset int) ([]entities.Patient, *errors.AppError)
 }
 
 // updated to match the new structured
@@ -109,7 +108,7 @@ type PatientRepository interface {
 	UpdatePatient(id uint, updateMap map[string]interface{}) (uint, error)
 	DeletePatient(id uint) error
 	GetPatientByID(id uint) (entities.Patient, error)
-	GetAllPatients(limit, offset int, filterQuery string, filterParams []interface{}) ([]entities.Patient, error)
+	GetAllPatients(page, count int, filterQuery string, filterParams []interface{}) ([]entities.Patient, int64, error)
 	GetPatientsByFullName(name string) ([]entities.Patient, error)
 	GetPatientAllergiesByID(id uint) ([]entities.Allergy, error)
 }

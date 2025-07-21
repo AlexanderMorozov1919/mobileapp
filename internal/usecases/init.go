@@ -34,7 +34,7 @@ func NewUsecases(r interfaces.Repository, s interfaces.Service, conf *config.Con
 		NewMedServiceUsecase(r),
 		NewPatientUsecase(r, s),
 		NewPersonalInfoUsecase(r),
-		NewReceptionHospitalUsecase(r),
+		NewReceptionHospitalUsecase(r, s),
 		NewReceptionSmpUsecase(r, r),
 		NewMedCardUsecase(r, r, r, r),
 	}

@@ -8,18 +8,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetDoctorByID godoc
-// @Summary Получить медкарту по ID Пациента
-// @Description Возвращает медкарту по ID Пациента
-// @Tags MedCard
+// GetMedCardByPatientID godoc
+// @Summary Получить медкарту по ID пациента
+// @Description Возвращает полную информацию из медицинской карты пациента
+// @Tags Medcard
 // @Accept json
 // @Produce json
-// @Param id path uint true "ID пациента"
-// @Success 200 {object} models.MedCardResponse "Медкарта"
-// @Failure 400 {object} ResultError "Некорректный ID"
+// @Param pat_id path uint true "ID пациента"
+// @Success 200 {object} models.MedCardResponse "Медицинская карта пациента"
+// @Failure 400 {object} ResultError "Некорректный ID пациента"
 // @Failure 404 {object} ResultError "Медкарта не найдена"
-// @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /medcard/{id} [get]
+// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Router /medcard/{pat_id} [get]
 func (h *Handler) GetMedCardByPatientID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("pat_id"), 10, 64)
 	if err != nil {
@@ -35,19 +35,20 @@ func (h *Handler) GetMedCardByPatientID(c *gin.Context) {
 	h.ResultResponse(c, "Success get medcard", Object, medCardResp)
 }
 
-// UpdateDoctor godoc
-// @Summary Обновить данные врача
-// @Description Обновляет информацию о враче
-// @Tags Doctor
+// UpdateMedCard godoc
+// @Summary Обновить данные медицинской карты
+// @Description Обновляет информацию в медицинской карте пациента
+// @Tags Medcard
 // @Accept json
 // @Produce json
-// @Param info body models.UpdateDoctorRequest true "Данные для обновления"
-// @Success 200 {object} entities.Doctor "Обновленный врач"
+// @Param pat_id path uint true "ID пациента"
+// @Param input body models.UpdateMedCardRequest true "Данные для обновления медкарты"
+// @Success 201 {object} models.MedCardResponse "Обновленная медицинская карта"
 // @Failure 400 {object} ResultError "Некорректный запрос"
-// @Failure 404 {object} ResultError "Врач не найден"
-// @Failure 422 {object} ResultError "Ошибка валидации"
-// @Failure 500 {object} ResultError "Внутренняя ошибка"
-// @Router /medcard [put]
+// @Failure 404 {object} ResultError "Медкарта не найдена"
+// @Failure 422 {object} ResultError "Ошибка валидации данных"
+// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Router /medcard/{pat_id} [put]
 func (h *Handler) UpdateMedCard(c *gin.Context) {
 	var input models.UpdateMedCardRequest
 	if err := c.ShouldBindJSON(&input); err != nil {

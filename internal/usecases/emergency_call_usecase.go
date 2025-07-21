@@ -58,10 +58,11 @@ func (u *EmergencyCallUsecase) GetEmergencyCallsByDoctorAndDate(
 	date time.Time,
 	page int,
 	perPage int,
-) (*models.FilterResponse[[]models.EmergencyCallShortResponse], error) {
+) (models.FilterResponse[[]models.EmergencyCallShortResponse], error) {
+	empty := models.FilterResponse[[]models.EmergencyCallShortResponse]{}
 	// Валидация входных параметров
 	if doctorID <= 0 {
-		return nil, errors.NewAppError(
+		return empty, errors.NewAppError(
 			errors.InternalServerErrorCode,
 			"failed to get doctor",
 			errors.ErrEmptyData,
@@ -70,7 +71,7 @@ func (u *EmergencyCallUsecase) GetEmergencyCallsByDoctorAndDate(
 	}
 
 	if page < 1 {
-		return nil, errors.NewAppError(
+		return empty, errors.NewAppError(
 			errors.InternalServerErrorCode,
 			"page number must be greater than 0",
 			errors.ErrDataNotFound,
@@ -79,7 +80,7 @@ func (u *EmergencyCallUsecase) GetEmergencyCallsByDoctorAndDate(
 	}
 
 	if perPage < 5 {
-		return nil, errors.NewAppError(
+		return empty, errors.NewAppError(
 			errors.InternalServerErrorCode,
 			"Perpage number must be greater than 5",
 			errors.ErrDataNotFound,
@@ -90,7 +91,7 @@ func (u *EmergencyCallUsecase) GetEmergencyCallsByDoctorAndDate(
 	// Получаем данные из репозитория
 	calls, total, err := u.repo.GetEmergencyReceptionsByDoctorAndDate(doctorID, date, page, perPage)
 	if err != nil {
-		return nil, errors.NewAppError(
+		return empty, errors.NewAppError(
 			errors.InternalServerErrorCode,
 			"failed to get receptions",
 			errors.ErrEmptyData,
@@ -114,7 +115,7 @@ func (u *EmergencyCallUsecase) GetEmergencyCallsByDoctorAndDate(
 	// Рассчитываем общее количество страниц
 	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
 
-	return &models.FilterResponse[[]models.EmergencyCallShortResponse]{
+	return models.FilterResponse[[]models.EmergencyCallShortResponse]{
 		Hits:        result,
 		CurrentPage: page,
 		TotalPages:  totalPages,

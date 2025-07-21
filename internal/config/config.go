@@ -9,13 +9,33 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type ServerConfig struct {
+	Port           string
+	AllowedOrigins []string
+}
+
 type Config struct {
 	App        AppConfig
 	HTTPServer HTTPConfig
 	Database   DatabaseConfig
 	Logging    LoggerConfig
 	Services   Services
-	JWTSecret  string `mapstructure:"JWT_SECRET"`
+	Server     ServerConfig // Добавляем ServerConfig в основную структуру
+	JWTSecret  string
+}
+
+func DefaultServerConfig() ServerConfig {
+	return ServerConfig{
+		Port: getEnv("SERVER_PORT", "8080"),
+		AllowedOrigins: []string{
+			"http://localhost:3000",
+			"http://localhost:5173",
+			"http://localhost:4200",
+			"http://localhost:8081",
+			"http://127.0.0.1:3000",
+			"http://127.0.0.1:5173",
+		},
+	}
 }
 
 type AppConfig struct {
@@ -60,7 +80,8 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("error loading .env file: %s", err.Error())
 	}
 
-	return &Config{
+	// Инициализируем Config с Server
+	cfg := &Config{
 		App: AppConfig{
 			Version: getEnv("VERSION", "1.0.0"),
 		},
@@ -88,7 +109,25 @@ func LoadConfig() (*Config, error) {
 				Host: getEnv("API_URL", "http://localhost:8080"),
 			},
 		},
-	}, nil
+		Server: ServerConfig{ // Явно инициализируем Server
+			Port: getEnv("SERVER_PORT", "8080"),
+			AllowedOrigins: []string{
+				"http://localhost:3000",
+				"http://localhost:5173",
+				"http://localhost:4200",
+				"http://localhost:8081",
+				"http://127.0.0.1:3000",
+				"http://127.0.0.1:5173",
+			},
+		},
+	}
+
+	cfg.JWTSecret = getEnv("JWT_SECRET", "")
+	if cfg.JWTSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET is required")
+	}
+
+	return cfg, nil
 }
 
 func getEnv(key, defaultValue string) string {

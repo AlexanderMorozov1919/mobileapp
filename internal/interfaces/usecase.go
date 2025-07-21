@@ -22,20 +22,24 @@ type Usecases interface {
 }
 
 type ReceptionHospitalUsecase interface {
-	GetReceptionsHospitalByPatientID(patientId uint) ([]models.ReceptionHospitalResponse, *errors.AppError)
+	GetHospitalReceptionsByPatientID(patientId uint, page, count int, filter, order string) (models.FilterResponse[[]models.ReceptionHospitalResponse], *errors.AppError)
 	UpdateReceptionHospital(input *models.UpdateReceptionHospitalRequest) (models.ReceptionHospitalResponse, *errors.AppError)
-	GetPatientsByDoctorID(doctorID uint, limit, offset int) ([]entities.Patient, *errors.AppError)
-	GetHospitalReceptionsByDoctorAndDate(doctorID uint, date time.Time, page int, perPage int) (*models.FilterResponse[[]models.ReceptionShortResponse], error)
+	GetHospitalReceptionsByDoctorID(doc_id uint, page, count int, filter, order string) (models.FilterResponse[[]models.ReceptionFullResponse], *errors.AppError)
+	GetHospitalPatientsByDoctorID(doc_id uint, page, count int, filter, order string) (models.FilterResponse[[]entities.Patient], *errors.AppError)
 }
 
 type ReceptionSmpUsecase interface {
 	CreateReceptionSMP(input *models.CreateEmergencyRequest) (entities.ReceptionSMP, *errors.AppError)
+	UpdateReceptionSmp(input *models.UpdateSmpReceptionRequest) (entities.ReceptionSMP, *errors.AppError)
+	GetReceptionWithMedServicesByID(smp_id uint, call_id uint) (models.ReceptionSMPResponse, error)
+	GetReceptionsSMPByEmergencyCall(call_id uint, page, perPage int) (*models.FilterResponse[[]models.ReceptionSMPResponse], error)
 }
 
 type MedCardUsecase interface {
 	GetMedCardByPatientID(id uint) (models.MedCardResponse, *errors.AppError)
 	UpdateMedCard(input *models.UpdateMedCardRequest) (models.MedCardResponse, *errors.AppError)
 }
+
 type AllergyUsecase interface {
 	AddAllergyToPatient(patientID, allergyID uint, description string) (entities.Allergy, *errors.AppError)
 	GetAllergyByPatientID(patientID uint) ([]entities.Allergy, *errors.AppError)
@@ -61,7 +65,7 @@ type EmergencyCallUsecase interface {
 		date time.Time,
 		page int,
 		perPage int,
-	) (*models.FilterResponse[[]models.EmergencyCallShortResponse], error)
+	) (models.FilterResponse[[]models.EmergencyCallShortResponse], error)
 }
 
 type MedServiceUsecase interface{}
@@ -72,7 +76,7 @@ type PatientUsecase interface {
 	UpdatePatient(input *models.UpdatePatientRequest) (entities.Patient, *errors.AppError)
 	DeletePatient(id uint) *errors.AppError
 
-	GetAllPatients(limit, offset int, filter string) ([]entities.Patient, *errors.AppError)
+	GetAllPatients(page, count int, filter string) (models.FilterResponse[[]entities.Patient], *errors.AppError)
 }
 
 type PersonalInfoUsecase interface{}

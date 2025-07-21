@@ -12,7 +12,8 @@ type Service interface {
 type ParamsParserService interface {
 	ParseDateString(dateStr string) (time.Time, error)
 	ParseTimeString(timeStr string) (time.Time, error)
-	ParseUintString(uintStr string) (uint64, error)
+	ParseUintString(uintStr string) (uint, error)
+	ParseIntString(intStr string) (int, error)
 
 	FormatDateToString(t time.Time) string
 	FormatTimeToString(t time.Time) string
@@ -20,4 +21,5 @@ type ParamsParserService interface {
 
 type FilterBuilderService interface {
 	ParseFilterString(filterStr string, modelFields map[string]string) (string, []interface{}, error)
+	ParseOrderString(orderStr string, modelFields map[string]string) (string, error)
 }
