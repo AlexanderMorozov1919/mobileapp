@@ -17,8 +17,8 @@ import (
 // @Param doctor_id path uint true "ID врача"
 // @Param page query int false "Номер страницы" default(1)
 // @Success 200 {array} entities.EmergencyCall "Список приёмов"
-// @Failure 400 {object} ResultError "Некорректный запрос или параметры"
-// @Failure 500 {object} ResultError "Внутренняя ошибка"
+// @Failure 400 {object} IncorrectFormatError "Некорректный запрос"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка"
 // @Router /emergency/{doctor_id} [get]
 func (h *Handler) GetEmergencyCallsByDoctorAndDate(c *gin.Context) {
 	// Получаем ID врача

@@ -16,9 +16,9 @@ import (
 // @Produce json
 // @Param doc_id path uint true "ID врача"
 // @Success 200 {object} ResultResponse{data=[]entities.Patient} "Список пациентов"
-// @Failure 400 {object} ResultError "Некорректный ID врача"
-// @Failure 404 {object} ResultError "Врач не найден"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 401 {object} IncorrectDataError "Некорректный ID врача"
+// @Failure 404 {object} NotFoundError "Врач не найден"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /patients/{doc_id} [get]
 func (h *Handler) GetAllPatientsByDoctorID(c *gin.Context) {
 	doc_id, err := h.service.ParseUintString(c.DefaultQuery("doc_id", "0"))
@@ -59,9 +59,9 @@ func (h *Handler) GetAllPatientsByDoctorID(c *gin.Context) {
 // @Produce json
 // @Param info body models.CreatePatientRequest true "Данные пациента"
 // @Success 201 {object} entities.Patient "Созданный пациент"
-// @Failure 400 {object} ResultError "Некорректный запрос"
-// @Failure 422 {object} ResultError "Ошибка валидации данных"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
+// @Failure 422 {object} ValidationError "Ошибка валидации"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /patients [post]
 func (h *Handler) CreatePatient(c *gin.Context) {
 	var input models.CreatePatientRequest

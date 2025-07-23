@@ -28,9 +28,9 @@ func NewAuthHandler(authUC *usecases.AuthUsecase) *AuthHandler {
 // @Produce json
 // @Param input body models.DoctorLoginRequest true "Данные для входа"
 // @Success 200 {object} models.DoctorAuthResponse "Успешное создание"
-// @Failure 400 {object} ResultError "Неверный формат запроса"
-// @Failure 401 {object} ResultError "Неверные учётные данные"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
+// @Failure 401 {object} IncorrectDataError "Неверные учётные данные"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /auth [post]
 func (h *AuthHandler) LoginDoctor(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)

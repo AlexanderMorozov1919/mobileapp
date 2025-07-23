@@ -16,9 +16,10 @@ import (
 // @Param recep_id path uint true "ID приёма"
 // @Param info body models.UpdateReceptionHospitalRequest true "Данные для обновления приёма"
 // @Success 200 {object} entities.ReceptionHospital "Обновлённый приём"
-// @Failure 400 {object} ResultError "Ошибка разбора тела запроса или некорректные данные"
-// @Failure 422 {object} ResultError "Ошибка валидации входных данных"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
+// @Failure 401 {object} IncorrectDataError "Некорректный ID приёма"
+// @Failure 422 {object} ValidationError "Ошибка валидации"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /hospital/receptions/{recep_id} [put]
 func (h *Handler) UpdateReceptionHospitalByReceptionID(c *gin.Context) {
 	var input models.UpdateReceptionHospitalRequest
@@ -53,8 +54,10 @@ func (h *Handler) UpdateReceptionHospitalByReceptionID(c *gin.Context) {
 // @Param filter query string false "Фильтр в формате field.operation.value.\nПримеры:\nrecommendations.like.режим - поле с подстрокой 'режим',\ndate.eq.2025-07-10 - фильтр по дате\ndate.eq.14:00:00 - фильтр по времени"
 // @Param order query string false "Сортировка в формате field.direction.\nПримеры:\ndate.desc - по убыванию даты,\nid.asc - по возрастанию id"
 // @Success 200 {object} models.ReceptionHospitalListResponse "История приёмов врача списком"
-// @Failure 400 {object} ResultError "Некорректные данные запроса"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
+// @Failure 401 {object} IncorrectDataError "Некорректный ID доктора"
+// @Failure 422 {object} ValidationError "Ошибка валидации"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /hospital/receptions/{doc_id} [get]
 func (h *Handler) GetReceptionsHospitalByDoctorID(c *gin.Context) {
 	doc_id, err := h.service.ParseUintString(c.Param("doc_id"))
@@ -100,8 +103,10 @@ func (h *Handler) GetReceptionsHospitalByDoctorID(c *gin.Context) {
 // @Param filter query string false "Фильтр в формате field.operation.value.\nПримеры:\nrecommendations.like.режим - поле с подстрокой 'режим',\ndate.eq.2025-07-10 - фильтр по дате\ndate.eq.14:00:00 - фильтр по времени"
 // @Param order query string false "Сортировка в формате field.direction.\nПримеры:\ndate.desc - по убыванию даты,\nid.asc - по возрастанию id"
 // @Success 200 {object} models.ReceptionHospitalListResponse "История приёмов списком"
-// @Failure 400 {object} ResultError "Некорректные данные"
-// @Failure 500 {object} ResultError "Внутренняя ошибка"
+// @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
+// @Failure 401 {object} IncorrectDataError "Некорректный ID пациента"
+// @Failure 422 {object} ValidationError "Ошибка валидации"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /hospital/receptions/patients/{pat_id} [get]
 func (h *Handler) GetAllHospitalReceptionsByPatientID(c *gin.Context) {
 	pat_id, err := h.service.ParseUintString(c.Param("pat_id"))

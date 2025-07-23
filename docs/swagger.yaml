@@ -245,21 +245,68 @@ definitions:
         example: Терапевт
         type: string
     type: object
-  handlers.ResultError:
+  handlers.IncorrectDataError:
     properties:
       response:
         properties:
           code:
-            description: '[RULE]: must be one of codes from table (Check DEV.PAGE)'
-            example: 400
+            example: 401
             type: integer
           message:
-            example: Bad request
+            example: Некорректные данные
             type: string
         type: object
       status:
         description: error
-        example: error
+        example: IncorrectDataError
+        type: string
+    type: object
+  handlers.IncorrectFormatError:
+    properties:
+      response:
+        properties:
+          code:
+            example: 400
+            type: integer
+          message:
+            example: Неверный формат запроса
+            type: string
+        type: object
+      status:
+        description: error
+        example: IncorrectFormatError
+        type: string
+    type: object
+  handlers.InternalServerError:
+    properties:
+      response:
+        properties:
+          code:
+            example: 500
+            type: integer
+          message:
+            example: Внутренняя ошибка сервера
+            type: string
+        type: object
+      status:
+        description: error
+        example: InternalServerError
+        type: string
+    type: object
+  handlers.NotFoundError:
+    properties:
+      response:
+        properties:
+          code:
+            example: 404
+            type: integer
+          message:
+            example: Данные не найдены
+            type: string
+        type: object
+      status:
+        description: error
+        example: NotFoundError
         type: string
     type: object
   handlers.ResultResponse:
@@ -279,6 +326,22 @@ definitions:
       status:
         description: ok
         example: ok
+        type: string
+    type: object
+  handlers.ValidationError:
+    properties:
+      response:
+        properties:
+          code:
+            example: 422
+            type: integer
+          message:
+            example: Ошибка валидации
+            type: string
+        type: object
+      status:
+        description: error
+        example: ValidationError
         type: string
     type: object
   models.AllergyResponse:
@@ -547,15 +610,15 @@ paths:
         "400":
           description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
         "401":
           description: Неверные учётные данные
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectDataError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Вход в систему
       tags:
       - Auth
@@ -580,15 +643,15 @@ paths:
         "400":
           description: Некорректный ID
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectDataError'
         "404":
           description: Врач не найден
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.NotFoundError'
         "500":
           description: Внутренняя ошибка
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить врача по ID
       tags:
       - Doctor
@@ -613,23 +676,60 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
         "404":
           description: Врач не найден
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.NotFoundError'
         "422":
           description: Ошибка валидации
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Обновить данные врача
       tags:
       - Doctor
-  /emergency/{call_id}:
+  /emergency/{doctor_id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список экстренных приёмов, назначенных врачу на указанную
+        дату, с пагинацией
+      parameters:
+      - description: ID врача
+        in: path
+        name: doctor_id
+        required: true
+        type: integer
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список приёмов
+          schema:
+            items:
+              $ref: '#/definitions/entities.EmergencyCall'
+            type: array
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/handlers.InternalServerError'
+      summary: Получить экстренные приёмы врача по дате
+      tags:
+      - SMP
+  /emergency/{doctor_id}/receptions:
     get:
       consumes:
       - application/json
@@ -661,54 +761,25 @@ paths:
               $ref: '#/definitions/entities.ReceptionSMP'
             type: array
         "400":
-          description: Некорректные параметры запроса
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID вызова
+          schema:
+            $ref: '#/definitions/handlers.IncorrectDataError'
+        "422":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить СМП приёмы по ID вызова
       tags:
       - SMP
-  /emergency/{doctor_id}:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает список экстренных приёмов, назначенных врачу на указанную
-        дату, с пагинацией
-      parameters:
-      - description: ID врача
-        in: path
-        name: doctor_id
-        required: true
-        type: integer
-      - default: 1
-        description: Номер страницы
-        in: query
-        name: page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Список приёмов
-          schema:
-            items:
-              $ref: '#/definitions/entities.EmergencyCall'
-            type: array
-        "400":
-          description: Некорректный запрос или параметры
-          schema:
-            $ref: '#/definitions/handlers.ResultError'
-        "500":
-          description: Внутренняя ошибка
-          schema:
-            $ref: '#/definitions/handlers.ResultError'
-      summary: Получить экстренные приёмы врача по дате
-      tags:
-      - SMP
-  /emergency/{doctor_id}/{reception_id}/{smp_id}:
+  /emergency/{smp_id}:
     get:
       consumes:
       - application/json
@@ -728,17 +799,21 @@ paths:
           schema:
             $ref: '#/definitions/entities.MedService'
         "400":
-          description: Некорректный ID
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
-        "404":
-          description: Приём не найден
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID вызова
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectDataError'
+        "422":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить приём СМП с медуслугами по ID
       tags:
       - SMP
@@ -751,21 +826,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Заключение для пациента
+          description: Создание заключения для пациента
           schema:
             $ref: '#/definitions/entities.ReceptionSMP'
         "400":
-          description: Некорректный ID
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
-        "404":
-          description: Переданные данные некорекктны
-          schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Создать заключение на скорой
       tags:
       - SMP
@@ -796,13 +867,21 @@ paths:
               $ref: '#/definitions/entities.ReceptionHospital'
             type: array
         "400":
-          description: Bad Request
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID приёма
+          schema:
+            $ref: '#/definitions/handlers.IncorrectDataError'
+        "422":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Обновить приём в больнице
       tags:
       - SMP
@@ -856,13 +935,21 @@ paths:
           schema:
             $ref: '#/definitions/models.ReceptionHospitalListResponse'
         "400":
-          description: Некорректные данные запроса
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID доктора
+          schema:
+            $ref: '#/definitions/handlers.IncorrectDataError'
+        "422":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить список приёмов врача по его ID
       tags:
       - HospitalReception
@@ -891,17 +978,21 @@ paths:
           schema:
             $ref: '#/definitions/entities.ReceptionHospital'
         "400":
-          description: Ошибка разбора тела запроса или некорректные данные
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID приёма
+          schema:
+            $ref: '#/definitions/handlers.IncorrectDataError'
         "422":
-          description: Ошибка валидации входных данных
+          description: Ошибка валидации
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Обновить приём в больнице
       tags:
       - HospitalReception
@@ -953,13 +1044,21 @@ paths:
           schema:
             $ref: '#/definitions/models.ReceptionHospitalListResponse'
         "400":
-          description: Некорректные данные
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID пациента
+          schema:
+            $ref: '#/definitions/handlers.IncorrectDataError'
+        "422":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
-          description: Внутренняя ошибка
+          description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить список приёмов пациента по его ID
       tags:
       - HospitalReception
@@ -982,17 +1081,21 @@ paths:
           schema:
             $ref: '#/definitions/models.MedCardResponse'
         "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
           description: Некорректный ID пациента
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectDataError'
         "404":
           description: Медицинская карта не найдена
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.NotFoundError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить медкарту пациента по его ID
       tags:
       - Medcard
@@ -1022,19 +1125,19 @@ paths:
         "400":
           description: Некорректный запрос
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
         "404":
           description: Медицинская карта не найдена
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.NotFoundError'
         "422":
-          description: Ошибка валидации данных
+          description: Ошибка валидации
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Обновить медицинскую карту пациента
       tags:
       - Medcard
@@ -1050,10 +1153,14 @@ paths:
           description: Медицинская карта пациента
           schema:
             $ref: '#/definitions/models.MedServicesListResponse'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/handlers.IncorrectFormatError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить все доступные платные услуги
       tags:
       - MedServices
@@ -1077,17 +1184,17 @@ paths:
           schema:
             $ref: '#/definitions/entities.Patient'
         "400":
-          description: Некорректный запрос
+          description: Неверный формат запроса
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectFormatError'
         "422":
-          description: Ошибка валидации данных
+          description: Ошибка валидации
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.ValidationError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Создать нового пациента
       tags:
       - Patient
@@ -1116,18 +1223,18 @@ paths:
                     $ref: '#/definitions/entities.Patient'
                   type: array
               type: object
-        "400":
+        "401":
           description: Некорректный ID врача
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.IncorrectDataError'
         "404":
           description: Врач не найден
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.NotFoundError'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/handlers.ResultError'
+            $ref: '#/definitions/handlers.InternalServerError'
       summary: Получить всех пациентов по ID врача
       tags:
       - Patient

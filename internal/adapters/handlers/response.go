@@ -99,3 +99,48 @@ type ResultError struct {
 		Message string `json:"message" example:"Bad request"`
 	} `json:"response"`
 }
+
+// InternalServerError
+type InternalServerError struct {
+	Status   string `json:"status" example:"InternalServerError"` // error
+	Response struct {
+		Code    int    `json:"code" example:"500"`
+		Message string `json:"message" example:"Внутренняя ошибка сервера"`
+	} `json:"response"`
+}
+
+// IncorrectFormatError
+type IncorrectFormatError struct {
+	Status   string `json:"status" example:"IncorrectFormatError"` // error
+	Response struct {
+		Code    int    `json:"code" example:"400"`
+		Message string `json:"message" example:"Неверный формат запроса"`
+	} `json:"response"`
+}
+
+// IncorrectDataError
+type IncorrectDataError struct {
+	Status   string `json:"status" example:"IncorrectDataError"` // error
+	Response struct {
+		Code    int    `json:"code" example:"401"`
+		Message string `json:"message" example:"Некорректные данные"`
+	} `json:"response"`
+}
+
+// NotFoundError
+type NotFoundError struct {
+	Status   string `json:"status" example:"NotFoundError"` // error
+	Response struct {
+		Code    int    `json:"code" example:"404"`
+		Message string `json:"message" example:"Данные не найдены"`
+	} `json:"response"`
+}
+
+// ValidationError
+type ValidationError struct {
+	Status   string `json:"status" example:"ValidationError"` // error
+	Response struct {
+		Code    int    `json:"code" example:"422"`
+		Message string `json:"message" example:"Ошибка валидации"`
+	} `json:"response"`
+}

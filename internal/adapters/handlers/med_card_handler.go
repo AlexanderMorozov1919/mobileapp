@@ -16,9 +16,10 @@ import (
 // @Produce json
 // @Param pat_id path uint true "ID пациента"
 // @Success 200 {object} models.MedCardResponse "Медицинская карта пациента"
-// @Failure 400 {object} ResultError "Некорректный ID пациента"
-// @Failure 404 {object} ResultError "Медицинская карта не найдена"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 400 {object} IncorrectFormatError "Некорректный запрос"
+// @Failure 401 {object} IncorrectDataError "Некорректный ID пациента"
+// @Failure 404 {object} NotFoundError "Медицинская карта не найдена"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /medcard/{pat_id} [get]
 func (h *Handler) GetMedCardByPatientID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("pat_id"), 10, 64)
@@ -44,10 +45,10 @@ func (h *Handler) GetMedCardByPatientID(c *gin.Context) {
 // @Param pat_id path uint true "ID пациента"
 // @Param input body models.UpdateMedCardRequest true "Данные для обновления медкарты"
 // @Success 201 {object} models.MedCardResponse "Обновлённая медицинская карта"
-// @Failure 400 {object} ResultError "Некорректный запрос"
-// @Failure 404 {object} ResultError "Медицинская карта не найдена"
-// @Failure 422 {object} ResultError "Ошибка валидации данных"
-// @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
+// @Failure 400 {object} IncorrectFormatError "Некорректный запрос"
+// @Failure 404 {object} NotFoundError "Медицинская карта не найдена"
+// @Failure 422 {object} ValidationError "Ошибка валидации"
+// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /medcard/{pat_id} [put]
 func (h *Handler) UpdateMedCard(c *gin.Context) {
 	var input models.UpdateMedCardRequest
