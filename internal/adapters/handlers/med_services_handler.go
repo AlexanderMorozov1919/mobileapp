@@ -12,7 +12,7 @@ import (
 // @Produce json
 // @Success 200 {object} models.MedServicesListResponse "Медицинская карта пациента"
 // @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
-// @Router /medservices/{pat_id} [get]
+// @Router /medservices/ [get]
 func (h *Handler) GetAllMedServices(c *gin.Context) {
 
 	medServices, eerr := h.usecase.GetAllMedServices()

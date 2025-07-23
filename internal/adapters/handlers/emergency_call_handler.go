@@ -15,7 +15,6 @@ import (
 // @Accept json
 // @Produce json
 // @Param doctor_id path uint true "ID врача"
-// @Param date query string true "Дата в формате YYYY-MM-DD"
 // @Param page query int false "Номер страницы" default(1)
 // @Success 200 {array} entities.EmergencyCall "Список приёмов"
 // @Failure 400 {object} ResultError "Некорректный запрос или параметры"

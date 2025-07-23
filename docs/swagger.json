@@ -267,6 +267,67 @@
                 }
             }
         },
+        "/emergency/{call_id}": {
+            "get": {
+                "description": "Возвращает список приёмов скорой медицинской помощи для указанного вызова",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SMP"
+                ],
+                "summary": "Получить СМП приёмы по ID вызова",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID вызова",
+                        "name": "call_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество записей на страницу",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о приёме скорой помощи",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.ReceptionSMP"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResultError"
+                        }
+                    }
+                }
+            }
+        },
         "/emergency/{doctor_id}": {
             "get": {
                 "description": "Возвращает список экстренных приёмов, назначенных врачу на указанную дату, с пагинацией",
@@ -286,13 +347,6 @@
                         "description": "ID врача",
                         "name": "doctor_id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Дата в формате YYYY-MM-DD",
-                        "name": "date",
-                        "in": "query",
                         "required": true
                     },
                     {
@@ -328,68 +382,7 @@
                 }
             }
         },
-        "/emergency/{doctor_id}/receptions": {
-            "get": {
-                "description": "Возвращает список приёмов скорой медицинской помощи для указанного врача с пагинацией",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SMP"
-                ],
-                "summary": "Получить СМП приёмы врача по дате",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID врача",
-                        "name": "doctor_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 5,
-                        "description": "Количество записей на страницу",
-                        "name": "perPage",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Информация о приёме скорой помощи",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entities.ReceptionSMP"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректные параметры запроса",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ResultError"
-                        }
-                    }
-                }
-            }
-        },
-        "/emergency/{smp_id}": {
+        "/emergency/{doctor_id}/{reception_id}/{smp_id}": {
             "get": {
                 "description": "Возвращает информацию о приёме скорой медицинской помощи вместе со списком медицинских услуг",
                 "consumes": [
@@ -747,7 +740,7 @@
                 }
             }
         },
-        "/medservices/{pat_id}": {
+        "/medservices/": {
             "get": {
                 "description": "Возвращает список платных услуг",
                 "consumes": [

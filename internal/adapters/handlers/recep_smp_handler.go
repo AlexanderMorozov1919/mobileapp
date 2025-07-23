@@ -9,20 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetReceptionsSMPByDoctorAndDate godoc
-// @Summary Получить СМП приёмы врача по дате
-// @Description Возвращает список приёмов скорой медицинской помощи для указанного врача с пагинацией
+// GetReceptionsSMPByCallID godoc
+// @Summary Получить СМП приёмы по ID вызова
+// @Description Возвращает список приёмов скорой медицинской помощи для указанного вызова
 // @Tags SMP
 // @Accept json
 // @Produce json
-// @Param doctor_id path uint true "ID врача"
+// @Param call_id path uint true "ID вызова"
 // @Param page query int false "Номер страницы" default(1)
-// @Param perPage query int false "Количество записей на страницу" default(5)
+// @Param per_page query int false "Количество записей на страницу" default(5)
 // @Success 200 {array} entities.ReceptionSMP "Информация о приёме скорой помощи"
 // @Failure 400 {object} ResultError "Некорректные параметры запроса"
 // @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
-// @Router /emergency/{doctor_id}/receptions [get]
-func (h *Handler) GetReceptionsSMPByCallId(c *gin.Context) {
+// @Router /emergency/{call_id} [get]
+func (h *Handler) GetReceptionsSMPByCallID(c *gin.Context) {
 
 	// Получаем doctor_id из URL
 	callIDStr := c.Param("call_id")
@@ -71,7 +71,7 @@ func (h *Handler) GetReceptionsSMPByCallId(c *gin.Context) {
 // @Failure 400 {object} ResultError "Некорректный ID"
 // @Failure 404 {object} ResultError "Приём не найден"
 // @Failure 500 {object} ResultError "Внутренняя ошибка сервера"
-// @Router /emergency/{smp_id} [get]
+// @Router /emergency/{doctor_id}/{reception_id}/{smp_id} [get]
 func (h *Handler) GetReceptionWithMedServices(c *gin.Context) {
 	// Парсинг ID
 	smp_id, err := h.service.ParseUintString(c.Param("smp_id"))
