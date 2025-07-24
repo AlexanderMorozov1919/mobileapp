@@ -19,6 +19,7 @@ type UseCases struct {
 	interfaces.ReceptionHospitalUsecase
 	interfaces.ReceptionSmpUsecase
 	interfaces.MedCardUsecase
+	interfaces.AuthUsecase
 }
 
 func NewUsecases(r interfaces.Repository, s interfaces.Service, conf *config.Config) interfaces.Usecases {
@@ -31,6 +32,7 @@ func NewUsecases(r interfaces.Repository, s interfaces.Service, conf *config.Con
 		NewReceptionHospitalUsecase(r, s),
 		NewReceptionSmpUsecase(r, r),
 		NewMedCardUsecase(r, r, r, r, r),
+		NewAuthUsecase(r, conf.JWTSecret),
 	}
 
 }

@@ -176,6 +176,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/emergency/calls/{call_id}": {
+            "get": {
+                "description": "Возвращает список приёмов скорой медицинской помощи для указанного врача с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SMP"
+                ],
+                "summary": "Получить СМП приём по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID вызова",
+                        "name": "call_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество записей на страницу",
+                        "name": "perPage",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о приёме скорой помощи",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ReceptionSMPResponseList"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат запроса",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.IncorrectFormatError"
+                        }
+                    },
+                    "401": {
+                        "description": "Некорректный ID вызова",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.IncorrectDataError"
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/emergency/receptions": {
             "post": {
                 "description": "Возвращает созданное заключение",
@@ -189,6 +262,17 @@ const docTemplate = `{
                     "SMP"
                 ],
                 "summary": "Создать заключение на скорой",
+                "parameters": [
+                    {
+                        "description": "Данные для создания заключения",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateEmergencyRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Создание заключения для пациента",
@@ -238,7 +322,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdateReceptionHospitalRequest"
+                            "$ref": "#/definitions/models.UpdateSmpReceptionRequest"
                         }
                     }
                 ],
@@ -279,7 +363,70 @@ const docTemplate = `{
                 }
             }
         },
-        "/emergency/{doctor_id}": {
+        "/emergency/smps/{call_id}/{smp_id}": {
+            "get": {
+                "description": "Возвращает информацию о приёме скорой медицинской помощи вместе со списком медицинских услуг",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SMP"
+                ],
+                "summary": "Получить приём СМП с медуслугами по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID вызова",
+                        "name": "call_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID приёма СМП",
+                        "name": "smp_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о приёме и медуслугах",
+                        "schema": {
+                            "$ref": "#/definitions/models.ReceptionSMPResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат запроса",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.IncorrectFormatError"
+                        }
+                    },
+                    "401": {
+                        "description": "Некорректный ID вызова",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.IncorrectDataError"
+                        }
+                    },
+                    "422": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationError"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/emergency/{doc_id}": {
             "get": {
                 "description": "Возвращает список экстренных приёмов, назначенных врачу на указанную дату, с пагинацией",
                 "consumes": [
@@ -296,15 +443,28 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "ID врача",
-                        "name": "doctor_id",
+                        "name": "doc_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата в формате YYYY-MM-DD",
+                        "name": "date",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 1,
                         "description": "Номер страницы",
                         "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество записей на страницу",
+                        "name": "perPage",
                         "in": "query"
                     }
                 ],
@@ -326,135 +486,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Внутренняя ошибка",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/emergency/{doctor_id}/receptions": {
-            "get": {
-                "description": "Возвращает список приёмов скорой медицинской помощи для указанного вызова",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SMP"
-                ],
-                "summary": "Получить СМП приёмы по ID вызова",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID вызова",
-                        "name": "call_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 5,
-                        "description": "Количество записей на страницу",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Информация о приёме скорой помощи",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entities.ReceptionSMP"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат запроса",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.IncorrectFormatError"
-                        }
-                    },
-                    "401": {
-                        "description": "Некорректный ID вызова",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.IncorrectDataError"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка валидации",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ValidationError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/emergency/{smp_id}": {
-            "get": {
-                "description": "Возвращает информацию о приёме скорой медицинской помощи вместе со списком медицинских услуг",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SMP"
-                ],
-                "summary": "Получить приём СМП с медуслугами по ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID приёма СМП",
-                        "name": "smp_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Информация о приёме и медуслугах",
-                        "schema": {
-                            "$ref": "#/definitions/entities.MedService"
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат запроса",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.IncorrectFormatError"
-                        }
-                    },
-                    "401": {
-                        "description": "Некорректный ID вызова",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.IncorrectDataError"
-                        }
-                    },
-                    "422": {
-                        "description": "Ошибка валидации",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ValidationError"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/handlers.InternalServerError"
                         }
@@ -763,7 +794,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Данные для обновления медкарты",
+                        "description": "Данные для обновления мед карты",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -895,7 +926,7 @@ const docTemplate = `{
         },
         "/patients/{doc_id}": {
             "get": {
-                "description": "Возвращает список всех пациентов, привязанных к указанному врачу",
+                "description": "Возвращает список уникальных пациентов, посетивших указанного доктора\n\nПо умолчанию кидать запрос с фильтром 'on_treatment.eq.true' - пациенты на лечении\nи сортировкой по алфавиту 'full_name.asc'",
                 "consumes": [
                     "application/json"
                 ],
@@ -905,54 +936,57 @@ const docTemplate = `{
                 "tags": [
                     "Patient"
                 ],
-                "summary": "Получить всех пациентов по ID врача",
+                "summary": "Получить список пациентов по ID доктора",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ID врача",
+                        "description": "ID доктора",
                         "name": "doc_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы\n(по умолчанию 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество записей на странице\n(по умолчанию 0 — без ограничения)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр в формате field.operation.value.\nПримеры:\nfull_name.like.Иван - имя содержит 'Иван',\nbirth_date.eq.1988-07-14 - точная дата рождения",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка в формате field.direction.\nПримеры:\nfull_name.asc - по алфавиту,\nid.desc - по убыванию ID пациента",
+                        "name": "order",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Список пациентов",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/handlers.ResultResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/entities.Patient"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/models.PatientsListResponse"
                         }
                     },
-                    "401": {
-                        "description": "Некорректный ID врача",
+                    "400": {
+                        "description": "Некорректные данные",
                         "schema": {
-                            "$ref": "#/definitions/handlers.IncorrectDataError"
-                        }
-                    },
-                    "404": {
-                        "description": "Врач не найден",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.NotFoundError"
+                            "$ref": "#/definitions/handlers.ResultError"
                         }
                     },
                     "500": {
-                        "description": "Внутренняя ошибка сервера",
+                        "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/handlers.InternalServerError"
+                            "$ref": "#/definitions/handlers.ResultError"
                         }
                     }
                 }
@@ -960,53 +994,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entities.Allergy": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Пенициллин"
-                },
-                "patient": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.Patient"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "entities.ContactInfo": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "entities.Doctor": {
             "type": "object",
             "properties": {
@@ -1054,6 +1041,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "emergency": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -1071,10 +1062,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/entities.ReceptionSMP"
                     }
                 },
-                "type": {
-                    "type": "boolean",
-                    "example": true
-                },
                 "updated_at": {
                     "type": "string"
                 }
@@ -1083,11 +1070,9 @@ const docTemplate = `{
         "entities.MedService": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "name": {
                     "type": "string",
@@ -1096,49 +1081,26 @@ const docTemplate = `{
                 "price": {
                     "type": "integer",
                     "example": 100
-                },
-                "receptionSMP": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.ReceptionSMP"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
                 }
             }
         },
         "entities.Patient": {
             "type": "object",
             "properties": {
-                "allergy": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.Allergy"
-                    }
-                },
                 "birth_date": {
                     "type": "string",
                     "example": "1980-05-15T00:00:00Z"
                 },
-                "contact_info": {
-                    "$ref": "#/definitions/entities.ContactInfo"
-                },
                 "created_at": {
                     "type": "string"
-                },
-                "emergency_receptions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.ReceptionSMP"
-                    }
                 },
                 "full_name": {
                     "type": "string",
                     "example": "Смирнов Алексей Петрович"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "is_male": {
                     "type": "boolean",
@@ -1147,45 +1109,6 @@ const docTemplate = `{
                 "on_treatment": {
                     "type": "boolean",
                     "example": false
-                },
-                "personal_info": {
-                    "$ref": "#/definitions/entities.PersonalInfo"
-                },
-                "receptions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.ReceptionHospital"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "entities.PersonalInfo": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "oms": {
-                    "type": "string",
-                    "example": "1234567890123456"
-                },
-                "passport_series": {
-                    "type": "string",
-                    "example": "4510 123456"
-                },
-                "patient_id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "snils": {
-                    "type": "string",
-                    "example": "123-456-789 00"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1215,7 +1138,8 @@ const docTemplate = `{
                     "example": 1
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "patient_id": {
                     "type": "integer",
@@ -1407,30 +1331,27 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.ResultResponse": {
+        "handlers.ResultError": {
             "type": "object",
             "properties": {
                 "response": {
                     "type": "object",
                     "properties": {
-                        "data": {
-                            "description": "[AVALIABLE]: object, array of objects, empty"
+                        "code": {
+                            "description": "[RULE]: must be one of codes from table (Check DEV.PAGE)",
+                            "type": "integer",
+                            "example": 400
                         },
                         "message": {
                             "type": "string",
-                            "example": "Success operation"
-                        },
-                        "type": {
-                            "description": "[AVALIABLE]: object, array, empty",
-                            "type": "string",
-                            "example": "object"
+                            "example": "Bad request"
                         }
                     }
                 },
                 "status": {
-                    "description": "ok",
+                    "description": "error",
                     "type": "string",
-                    "example": "ok"
+                    "example": "error"
                 }
             }
         },
@@ -1468,6 +1389,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ContactInfoData": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "г. Москва, ул. Ленина, д. 10"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "+79991234567"
+                }
+            }
+        },
         "models.ContactInfoResponse": {
             "description": "Контактная информация пациента",
             "type": "object",
@@ -1486,6 +1424,30 @@ const docTemplate = `{
                     "description": "Номер телефона",
                     "type": "string",
                     "example": "+79991234567"
+                }
+            }
+        },
+        "models.CreateEmergencyRequest": {
+            "type": "object",
+            "required": [
+                "doctor_id",
+                "emergency_call_id"
+            ],
+            "properties": {
+                "doctor_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "emergency_call_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "patient": {
+                    "$ref": "#/definitions/models.PatientData"
+                },
+                "patient_id": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -1535,7 +1497,7 @@ const docTemplate = `{
                     "example": "Иванов Иван Иванович"
                 },
                 "specialization": {
-                    "$ref": "#/definitions/entities.Specialization"
+                    "type": "string"
                 }
             }
         },
@@ -1626,6 +1588,54 @@ const docTemplate = `{
                 }
             }
         },
+        "models.PatientData": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string",
+                    "example": "1980-05-15T00:00:00Z"
+                },
+                "contact_info": {
+                    "description": "Опциональные контактные данные",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ContactInfoData"
+                        }
+                    ]
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Иванов Иван Иванович"
+                },
+                "is_male": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.PatientsListResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "hits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Patient"
+                    }
+                },
+                "hitsPerPage": {
+                    "type": "integer"
+                },
+                "totalHits": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.PersonalInfoResponse": {
             "description": "Документы и идентификационные данные пациента",
             "type": "object",
@@ -1684,12 +1694,73 @@ const docTemplate = `{
                 "doctor": {
                     "$ref": "#/definitions/models.DoctorInfoResponse"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "patient": {
                     "$ref": "#/definitions/models.ShortPatientResponse"
                 },
                 "recommendations": {
                     "type": "string",
                     "example": "Постельный режим"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "scheduled"
+                }
+            }
+        },
+        "models.ReceptionSMPResponse": {
+            "type": "object",
+            "properties": {
+                "diagnosis": {
+                    "type": "string",
+                    "example": "ОРВИ"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "med_services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MedServicesResponse"
+                    }
+                },
+                "patient_name": {
+                    "type": "string",
+                    "example": "Иванов Иван"
+                },
+                "recommendations": {
+                    "type": "string",
+                    "example": "Постельный режим"
+                },
+                "specialization": {
+                    "type": "string",
+                    "example": "Терапевт"
+                },
+                "specialization_data": {}
+            }
+        },
+        "models.ReceptionSMPResponseList": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "hits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ReceptionSMPResponse"
+                    }
+                },
+                "hitsPerPage": {
+                    "type": "integer"
+                },
+                "totalHits": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
                 }
             }
         },
@@ -1709,7 +1780,8 @@ const docTemplate = `{
                 },
                 "id": {
                     "description": "ID пациента",
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "is_male": {
                     "description": "Пол (true - мужской)",
@@ -1785,7 +1857,8 @@ const docTemplate = `{
                     "example": "Грипп"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "recommendations": {
                     "type": "string",
@@ -1798,6 +1871,47 @@ const docTemplate = `{
                         }
                     ],
                     "example": "scheduled"
+                }
+            }
+        },
+        "models.UpdateSmpReceptionRequest": {
+            "type": "object",
+            "required": [
+                "doctor_id",
+                "emergency_call_id",
+                "patient_id",
+                "reception_smp_id"
+            ],
+            "properties": {
+                "diagnosis": {
+                    "type": "string",
+                    "example": "ОРВИ"
+                },
+                "doctor_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "emergency_call_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "med_services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.MedService"
+                    }
+                },
+                "patient_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "reception_smp_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "recommendations": {
+                    "type": "string",
+                    "example": "Постельный режим"
                 }
             }
         }

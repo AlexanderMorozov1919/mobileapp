@@ -9,16 +9,22 @@ import (
 )
 
 // GetAllPatientsByDoctorID godoc
-// @Summary Получить всех пациентов по ID врача
-// @Description Возвращает список всех пациентов, привязанных к указанному врачу
+// @Summary Получить список пациентов по ID доктора
+// @Description Возвращает список уникальных пациентов, посетивших указанного доктора
+// @Description
+// @Description По умолчанию кидать запрос с фильтром 'on_treatment.eq.true' - пациенты на лечении
+// @Description и сортировкой по алфавиту 'full_name.asc'
 // @Tags Patient
 // @Accept json
 // @Produce json
-// @Param doc_id path uint true "ID врача"
-// @Success 200 {object} ResultResponse{data=[]entities.Patient} "Список пациентов"
-// @Failure 401 {object} IncorrectDataError "Некорректный ID врача"
-// @Failure 404 {object} NotFoundError "Врач не найден"
-// @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
+// @Param doc_id path uint true "ID доктора"
+// @Param page query int false "Номер страницы\n(по умолчанию 1)"
+// @Param count query int false "Количество записей на странице\n(по умолчанию 0 — без ограничения)"
+// @Param filter query string false "Фильтр в формате field.operation.value.\nПримеры:\nfull_name.like.Иван - имя содержит 'Иван',\nbirth_date.eq.1988-07-14 - точная дата рождения"
+// @Param order query string false "Сортировка в формате field.direction.\nПримеры:\nfull_name.asc - по алфавиту,\nid.desc - по убыванию ID пациента"
+// @Success 200 {object} models.PatientsListResponse "Список пациентов"
+// @Failure 400 {object} ResultError "Некорректные данные"
+// @Failure 500 {object} ResultError "Внутренняя ошибка"
 // @Router /patients/{doc_id} [get]
 func (h *Handler) GetAllPatientsByDoctorID(c *gin.Context) {
 	doc_id, err := h.service.ParseUintString(c.DefaultQuery("doc_id", "0"))

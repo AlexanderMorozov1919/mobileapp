@@ -7,15 +7,17 @@ import (
 )
 
 type ReceptionHospitalResponse struct {
+	ID              uint                 `json:"id"`
 	Doctor          DoctorInfoResponse   `json:"doctor"`
 	Patient         ShortPatientResponse `json:"patient"`
 	Diagnosis       string               `json:"diagnosis" example:"ОРВИ"`
 	Recommendations string               `json:"recommendations" example:"Постельный режим"`
+	Status          string               `json:"status" example:"scheduled"`
 	Date            time.Time            `json:"date" example:"2023-10-15T14:30:00Z"`
 }
 
 type UpdateReceptionHospitalRequest struct {
-	ID              uint                     `json:"id"`
+	ID              uint                     `json:"id" example:"1"`
 	Diagnosis       string                   `json:"diagnosis" example:"Грипп" rus:"Диагноз"`
 	Recommendations string                   `json:"recommendations" example:"Постельный режим" rus:"Рекомендации"`
 	Status          entities.ReceptionStatus `gorm:"not null" json:"status" example:"scheduled" rus:"Статус госпитализации"`
@@ -38,29 +40,4 @@ type ReceptionFullResponse struct {
 
 	// Сырые JSON данные (опционально)
 	RawSpecializationData []byte `json:"raw_specialization_data,omitempty"`
-}
-
-// Специализированные DTO модели (те же что и для хранения)
-type TherapistResponse struct {
-	BloodPressure string  `json:"blood_pressure"`
-	Temperature   float32 `json:"temperature"`
-	Anamnesis     string  `json:"anamnesis"`
-}
-
-type CardiologistResponse struct {
-	ECG        string `json:"ecg"`
-	HeartRate  int    `json:"heart_rate"`
-	Arrhythmia bool   `json:"arrhythmia"`
-}
-
-type NeurologistResponse struct {
-	Reflexes    map[string]string `json:"reflexes"`
-	Sensitivity string            `json:"sensitivity"`
-	Complaints  []string          `json:"complaints"`
-}
-
-type TraumatologistResponse struct {
-	InjuryType string `json:"injury_type"`
-	XRayResult string `json:"x_ray_result"`
-	Fracture   bool   `json:"fracture"`
 }

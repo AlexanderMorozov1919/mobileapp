@@ -13,12 +13,12 @@ type EmergencyCall struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	DoctorID uint   `gorm:"not null;index" json:"doctor_id" example:"1"`
-	Doctor   Doctor `gorm:"foreignKey:DoctorID" json:"-"`
-	Type     bool   `json:"type" example:"true"`
-	Priority *uint  `gorm:"unique;default:null" json:"priority" example:"1"`
-	Address  string `json:"address" example:"+79991234567"`
-	Phone    string `json:"phone" example:"+79991234567"`
+	DoctorID  uint   `gorm:"not null;index" json:"doctor_id" example:"1"`
+	Doctor    Doctor `gorm:"foreignKey:DoctorID" json:"-"`
+	Emergency bool   `json:"emergency" example:"true"`
+	Priority  *uint  `gorm:"unique;default:null" json:"priority" example:"1"`
+	Address   string `json:"address" example:"+79991234567"`
+	Phone     string `json:"phone" example:"+79991234567"`
 
 	ReceptionSMPs []ReceptionSMP `gorm:"foreignKey:EmergencyCallID" json:"receptions"`
 }

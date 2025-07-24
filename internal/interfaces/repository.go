@@ -110,6 +110,7 @@ type ReceptionHospitalRepository interface {
 	GetAllHospitalReceptionsByPatientID(patientID uint, page, count int, queryFilter string, queryOrder string, parameters []interface{}) ([]entities.ReceptionHospital, int64, error)
 
 	GetReceptionHospitalByID(id uint) (entities.ReceptionHospital, error)
+	GetHospitalReceptionByID(hospID uint) (entities.ReceptionHospital, error)
 }
 
 // updated to match the new structured

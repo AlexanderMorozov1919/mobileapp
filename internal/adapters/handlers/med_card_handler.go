@@ -43,7 +43,7 @@ func (h *Handler) GetMedCardByPatientID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param pat_id path uint true "ID пациента"
-// @Param input body models.UpdateMedCardRequest true "Данные для обновления медкарты"
+// @Param input body models.UpdateMedCardRequest true "Данные для обновления мед карты"
 // @Success 201 {object} models.MedCardResponse "Обновлённая медицинская карта"
 // @Failure 400 {object} IncorrectFormatError "Некорректный запрос"
 // @Failure 404 {object} NotFoundError "Медицинская карта не найдена"

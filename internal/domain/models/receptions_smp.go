@@ -1,11 +1,5 @@
 package models
 
-type ReceptionSMPShortResponse struct {
-	Id          uint   `json:"id"`
-	PatientName string `json:"patient_name" example:"Иванов Иван"` // ФИО пациента
-	Diagnosis   string `json:"diagnosis" example:"ОРВИ"`
-}
-
 type ReceptionSMPResponse struct {
 	ID                 uint                  `json:"id"`
 	PatientName        string                `json:"patient_name" example:"Иванов Иван"`
@@ -14,4 +8,11 @@ type ReceptionSMPResponse struct {
 	Specialization     string                `json:"specialization" example:"Терапевт"`
 	SpecializationData interface{}           `json:"specialization_data"`
 	MedServices        []MedServicesResponse `json:"med_services"`
+}
+type ReceptionSmpShortResponse struct {
+	ID              uint                 `json:"id"`
+	Doctor          DoctorInfoResponse   `json:"doctor"`
+	Patient         ShortPatientResponse `json:"patient"`
+	Diagnosis       string               `json:"diagnosis" example:"ОРВИ"`
+	Recommendations string               `json:"recommendations" example:"Постельный режим"`
 }

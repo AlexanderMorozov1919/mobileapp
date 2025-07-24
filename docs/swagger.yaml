@@ -1,36 +1,5 @@
 basePath: /api/v1
 definitions:
-  entities.Allergy:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: integer
-      name:
-        example: Пенициллин
-        type: string
-      patient:
-        items:
-          $ref: '#/definitions/entities.Patient'
-        type: array
-      updated_at:
-        type: string
-    type: object
-  entities.ContactInfo:
-    properties:
-      address:
-        type: string
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      phone:
-        type: string
-      updated_at:
-        type: string
-    type: object
   entities.Doctor:
     properties:
       created_at:
@@ -63,6 +32,9 @@ definitions:
       doctor_id:
         example: 1
         type: integer
+      emergency:
+        example: true
+        type: boolean
       id:
         type: integer
       phone:
@@ -75,17 +47,13 @@ definitions:
         items:
           $ref: '#/definitions/entities.ReceptionSMP'
         type: array
-      type:
-        example: true
-        type: boolean
       updated_at:
         type: string
     type: object
   entities.MedService:
     properties:
-      created_at:
-        type: string
       id:
+        example: 1
         type: integer
       name:
         example: EKG
@@ -93,34 +61,19 @@ definitions:
       price:
         example: 100
         type: integer
-      receptionSMP:
-        items:
-          $ref: '#/definitions/entities.ReceptionSMP'
-        type: array
-      updated_at:
-        type: string
     type: object
   entities.Patient:
     properties:
-      allergy:
-        items:
-          $ref: '#/definitions/entities.Allergy'
-        type: array
       birth_date:
         example: "1980-05-15T00:00:00Z"
         type: string
-      contact_info:
-        $ref: '#/definitions/entities.ContactInfo'
       created_at:
         type: string
-      emergency_receptions:
-        items:
-          $ref: '#/definitions/entities.ReceptionSMP'
-        type: array
       full_name:
         example: Смирнов Алексей Петрович
         type: string
       id:
+        example: 1
         type: integer
       is_male:
         example: true
@@ -128,33 +81,6 @@ definitions:
       on_treatment:
         example: false
         type: boolean
-      personal_info:
-        $ref: '#/definitions/entities.PersonalInfo'
-      receptions:
-        items:
-          $ref: '#/definitions/entities.ReceptionHospital'
-        type: array
-      updated_at:
-        type: string
-    type: object
-  entities.PersonalInfo:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: integer
-      oms:
-        example: "1234567890123456"
-        type: string
-      passport_series:
-        example: 4510 123456
-        type: string
-      patient_id:
-        example: 1
-        type: integer
-      snils:
-        example: 123-456-789 00
-        type: string
       updated_at:
         type: string
     type: object
@@ -175,6 +101,7 @@ definitions:
         example: 1
         type: integer
       id:
+        example: 1
         type: integer
       patient_id:
         example: 1
@@ -309,23 +236,21 @@ definitions:
         example: NotFoundError
         type: string
     type: object
-  handlers.ResultResponse:
+  handlers.ResultError:
     properties:
       response:
         properties:
-          data:
-            description: '[AVALIABLE]: object, array of objects, empty'
+          code:
+            description: '[RULE]: must be one of codes from table (Check DEV.PAGE)'
+            example: 400
+            type: integer
           message:
-            example: Success operation
-            type: string
-          type:
-            description: '[AVALIABLE]: object, array, empty'
-            example: object
+            example: Bad request
             type: string
         type: object
       status:
-        description: ok
-        example: ok
+        description: error
+        example: error
         type: string
     type: object
   handlers.ValidationError:
@@ -352,6 +277,18 @@ definitions:
         example: Пыльца
         type: string
     type: object
+  models.ContactInfoData:
+    properties:
+      address:
+        example: г. Москва, ул. Ленина, д. 10
+        type: string
+      email:
+        example: user@example.com
+        type: string
+      phone:
+        example: "+79991234567"
+        type: string
+    type: object
   models.ContactInfoResponse:
     description: Контактная информация пациента
     properties:
@@ -367,6 +304,23 @@ definitions:
         description: Номер телефона
         example: "+79991234567"
         type: string
+    type: object
+  models.CreateEmergencyRequest:
+    properties:
+      doctor_id:
+        example: 1
+        type: integer
+      emergency_call_id:
+        example: 1
+        type: integer
+      patient:
+        $ref: '#/definitions/models.PatientData'
+      patient_id:
+        example: 1
+        type: integer
+    required:
+    - doctor_id
+    - emergency_call_id
     type: object
   models.CreatePatientRequest:
     description: Данные для создания нового пациента
@@ -403,7 +357,7 @@ definitions:
         example: Иванов Иван Иванович
         type: string
       specialization:
-        $ref: '#/definitions/entities.Specialization'
+        type: string
     type: object
   models.DoctorLoginRequest:
     description: Запрос для входа врача в систему
@@ -461,6 +415,37 @@ definitions:
         example: 100
         type: integer
     type: object
+  models.PatientData:
+    properties:
+      birth_date:
+        example: "1980-05-15T00:00:00Z"
+        type: string
+      contact_info:
+        allOf:
+        - $ref: '#/definitions/models.ContactInfoData'
+        description: Опциональные контактные данные
+      full_name:
+        example: Иванов Иван Иванович
+        type: string
+      is_male:
+        example: true
+        type: boolean
+    type: object
+  models.PatientsListResponse:
+    properties:
+      currentPage:
+        type: integer
+      hits:
+        items:
+          $ref: '#/definitions/entities.Patient'
+        type: array
+      hitsPerPage:
+        type: integer
+      totalHits:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   models.PersonalInfoResponse:
     description: Документы и идентификационные данные пациента
     properties:
@@ -502,11 +487,53 @@ definitions:
         type: string
       doctor:
         $ref: '#/definitions/models.DoctorInfoResponse'
+      id:
+        type: integer
       patient:
         $ref: '#/definitions/models.ShortPatientResponse'
       recommendations:
         example: Постельный режим
         type: string
+      status:
+        example: scheduled
+        type: string
+    type: object
+  models.ReceptionSMPResponse:
+    properties:
+      diagnosis:
+        example: ОРВИ
+        type: string
+      id:
+        type: integer
+      med_services:
+        items:
+          $ref: '#/definitions/models.MedServicesResponse'
+        type: array
+      patient_name:
+        example: Иванов Иван
+        type: string
+      recommendations:
+        example: Постельный режим
+        type: string
+      specialization:
+        example: Терапевт
+        type: string
+      specialization_data: {}
+    type: object
+  models.ReceptionSMPResponseList:
+    properties:
+      currentPage:
+        type: integer
+      hits:
+        items:
+          $ref: '#/definitions/models.ReceptionSMPResponse'
+        type: array
+      hitsPerPage:
+        type: integer
+      totalHits:
+        type: integer
+      totalPages:
+        type: integer
     type: object
   models.ShortPatientResponse:
     description: Сокращенные данные пациента
@@ -521,6 +548,7 @@ definitions:
         type: string
       id:
         description: ID пациента
+        example: 1
         type: integer
       is_male:
         description: Пол (true - мужской)
@@ -570,6 +598,7 @@ definitions:
         example: Грипп
         type: string
       id:
+        example: 1
         type: integer
       recommendations:
         example: Постельный режим
@@ -578,6 +607,36 @@ definitions:
         allOf:
         - $ref: '#/definitions/entities.ReceptionStatus'
         example: scheduled
+    type: object
+  models.UpdateSmpReceptionRequest:
+    properties:
+      diagnosis:
+        example: ОРВИ
+        type: string
+      doctor_id:
+        example: 1
+        type: integer
+      emergency_call_id:
+        example: 1
+        type: integer
+      med_services:
+        items:
+          $ref: '#/definitions/entities.MedService'
+        type: array
+      patient_id:
+        example: 1
+        type: integer
+      reception_smp_id:
+        example: 1
+        type: integer
+      recommendations:
+        example: Постельный режим
+        type: string
+    required:
+    - doctor_id
+    - emergency_call_id
+    - patient_id
+    - reception_smp_id
     type: object
 host: localhost:8080
 info:
@@ -692,7 +751,7 @@ paths:
       summary: Обновить данные врача
       tags:
       - Doctor
-  /emergency/{doctor_id}:
+  /emergency/{doc_id}:
     get:
       consumes:
       - application/json
@@ -701,13 +760,22 @@ paths:
       parameters:
       - description: ID врача
         in: path
-        name: doctor_id
+        name: doc_id
         required: true
         type: integer
+      - description: Дата в формате YYYY-MM-DD
+        in: query
+        name: date
+        type: string
       - default: 1
         description: Номер страницы
         in: query
         name: page
+        type: integer
+      - default: 5
+        description: Количество записей на страницу
+        in: query
+        name: perPage
         type: integer
       produces:
       - application/json
@@ -729,7 +797,7 @@ paths:
       summary: Получить экстренные приёмы врача по дате
       tags:
       - SMP
-  /emergency/{doctor_id}/receptions:
+  /emergency/calls/{call_id}:
     get:
       consumes:
       - application/json
@@ -758,7 +826,7 @@ paths:
           description: Информация о приёме скорой помощи
           schema:
             items:
-              $ref: '#/definitions/entities.ReceptionSMP'
+              $ref: '#/definitions/models.ReceptionSMPResponseList'
             type: array
         "400":
           description: Неверный формат запроса
@@ -776,45 +844,7 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/handlers.InternalServerError'
-      summary: Получить СМП приёмы по ID вызова
-      tags:
-      - SMP
-  /emergency/{smp_id}:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает информацию о приёме скорой медицинской помощи вместе
-        со списком медицинских услуг
-      parameters:
-      - description: ID приёма СМП
-        in: path
-        name: smp_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Информация о приёме и медуслугах
-          schema:
-            $ref: '#/definitions/entities.MedService'
-        "400":
-          description: Неверный формат запроса
-          schema:
-            $ref: '#/definitions/handlers.IncorrectFormatError'
-        "401":
-          description: Некорректный ID вызова
-          schema:
-            $ref: '#/definitions/handlers.IncorrectDataError'
-        "422":
-          description: Ошибка валидации
-          schema:
-            $ref: '#/definitions/handlers.ValidationError'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/handlers.InternalServerError'
-      summary: Получить приём СМП с медуслугами по ID
+      summary: Получить СМП приём по ID
       tags:
       - SMP
   /emergency/receptions:
@@ -822,6 +852,13 @@ paths:
       consumes:
       - application/json
       description: Возвращает созданное заключение
+      parameters:
+      - description: Данные для создания заключения
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateEmergencyRequest'
       produces:
       - application/json
       responses:
@@ -856,7 +893,7 @@ paths:
         name: info
         required: true
         schema:
-          $ref: '#/definitions/models.UpdateReceptionHospitalRequest'
+          $ref: '#/definitions/models.UpdateSmpReceptionRequest'
       produces:
       - application/json
       responses:
@@ -883,6 +920,49 @@ paths:
           schema:
             $ref: '#/definitions/handlers.InternalServerError'
       summary: Обновить приём в больнице
+      tags:
+      - SMP
+  /emergency/smps/{call_id}/{smp_id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает информацию о приёме скорой медицинской помощи вместе
+        со списком медицинских услуг
+      parameters:
+      - description: ID вызова
+        in: path
+        name: call_id
+        required: true
+        type: integer
+      - description: ID приёма СМП
+        in: path
+        name: smp_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о приёме и медуслугах
+          schema:
+            $ref: '#/definitions/models.ReceptionSMPResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            $ref: '#/definitions/handlers.IncorrectFormatError'
+        "401":
+          description: Некорректный ID вызова
+          schema:
+            $ref: '#/definitions/handlers.IncorrectDataError'
+        "422":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/handlers.ValidationError'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.InternalServerError'
+      summary: Получить приём СМП с медуслугами по ID
       tags:
       - SMP
   /hospital/receptions/{doc_id}:
@@ -1109,7 +1189,7 @@ paths:
         name: pat_id
         required: true
         type: integer
-      - description: Данные для обновления медкарты
+      - description: Данные для обновления мед карты
         in: body
         name: input
         required: true
@@ -1202,40 +1282,61 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает список всех пациентов, привязанных к указанному врачу
+      description: |-
+        Возвращает список уникальных пациентов, посетивших указанного доктора
+
+        По умолчанию кидать запрос с фильтром 'on_treatment.eq.true' - пациенты на лечении
+        и сортировкой по алфавиту 'full_name.asc'
       parameters:
-      - description: ID врача
+      - description: ID доктора
         in: path
         name: doc_id
         required: true
         type: integer
+      - description: |-
+          Номер страницы
+          (по умолчанию 1)
+        in: query
+        name: page
+        type: integer
+      - description: |-
+          Количество записей на странице
+          (по умолчанию 0 — без ограничения)
+        in: query
+        name: count
+        type: integer
+      - description: |-
+          Фильтр в формате field.operation.value.
+          Примеры:
+          full_name.like.Иван - имя содержит 'Иван',
+          birth_date.eq.1988-07-14 - точная дата рождения
+        in: query
+        name: filter
+        type: string
+      - description: |-
+          Сортировка в формате field.direction.
+          Примеры:
+          full_name.asc - по алфавиту,
+          id.desc - по убыванию ID пациента
+        in: query
+        name: order
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: Список пациентов
           schema:
-            allOf:
-            - $ref: '#/definitions/handlers.ResultResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/entities.Patient'
-                  type: array
-              type: object
-        "401":
-          description: Некорректный ID врача
+            $ref: '#/definitions/models.PatientsListResponse'
+        "400":
+          description: Некорректные данные
           schema:
-            $ref: '#/definitions/handlers.IncorrectDataError'
-        "404":
-          description: Врач не найден
-          schema:
-            $ref: '#/definitions/handlers.NotFoundError'
+            $ref: '#/definitions/handlers.ResultError'
         "500":
-          description: Внутренняя ошибка сервера
+          description: Внутренняя ошибка
           schema:
-            $ref: '#/definitions/handlers.InternalServerError'
-      summary: Получить всех пациентов по ID врача
+            $ref: '#/definitions/handlers.ResultError'
+      summary: Получить список пациентов по ID доктора
       tags:
       - Patient
 swagger: "2.0"

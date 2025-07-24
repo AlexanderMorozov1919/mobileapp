@@ -123,7 +123,7 @@ func (u *ReceptionSmpUsecase) CreateReceptionSMP(input *models.CreateEmergencyRe
 func (u *ReceptionSmpUsecase) GetReceptionsSMPByEmergencyCall(
 	call_id uint,
 	page, perPage int,
-) (*models.FilterResponse[[]models.ReceptionSMPResponse], error) {
+) (*models.FilterResponse[[]models.ReceptionSmpShortResponse], error) {
 	// Получаем данные из репозитория
 	receptions, total, err := u.recepSmpRepo.GetWithPatientsByEmergencyCallID(call_id, page, perPage)
 	if err != nil {
@@ -136,31 +136,33 @@ func (u *ReceptionSmpUsecase) GetReceptionsSMPByEmergencyCall(
 	}
 
 	// Преобразуем в DTO
-	response := make([]models.ReceptionSMPResponse, len(receptions))
+	response := make([]models.ReceptionSmpShortResponse, len(receptions))
 	for i, rec := range receptions {
-		// Преобразуем медицинские услуги
-		medServices := make([]models.MedServicesResponse, len(rec.MedServices))
-		for j, svc := range rec.MedServices {
-			medServices[j] = models.MedServicesResponse{
-				Name:  svc.Name,
-				Price: svc.Price,
-			}
+
+		doctor := models.DoctorInfoResponse{
+			FullName:       rec.Doctor.FullName,
+			Specialization: rec.CachedSpecialization,
 		}
 
-		response[i] = models.ReceptionSMPResponse{
-			ID:                 rec.ID,
-			PatientName:        rec.Patient.FullName,
-			Diagnosis:          rec.Diagnosis,
-			Recommendations:    rec.Recommendations,
-			Specialization:     rec.Doctor.Specialization.Title,
-			SpecializationData: rec.SpecializationDataDecoded,
-			MedServices:        medServices,
+		patient := models.ShortPatientResponse{
+			ID:        rec.Doctor.ID,
+			FullName:  rec.Doctor.FullName,
+			BirthDate: rec.Patient.BirthDate,
+			IsMale:    rec.Patient.IsMale,
+		}
+
+		response[i] = models.ReceptionSmpShortResponse{
+			ID:              rec.ID,
+			Doctor:          doctor,
+			Patient:         patient,
+			Diagnosis:       rec.Diagnosis,
+			Recommendations: rec.Recommendations,
 		}
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
 
-	return &models.FilterResponse[[]models.ReceptionSMPResponse]{
+	return &models.FilterResponse[[]models.ReceptionSmpShortResponse]{
 		Hits:        response,
 		CurrentPage: page,
 		TotalPages:  totalPages,

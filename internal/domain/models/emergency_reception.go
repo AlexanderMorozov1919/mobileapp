@@ -7,8 +7,7 @@ import "github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
 type EmergencyCallShortResponse struct {
 	Id        uint   `json:"id" example:"3"`
 	CreatedAt string `json:"created_at" example:"2023-05-15T14:30:00Z"` // Дата и время создания
-	Status    string `json:"status" example:"завершен"`                 // Статус приема
-	Type      bool   `json:"type" example:"true"`
+	Emergency bool   `json:"emergency" example:"true"`
 	Priority  *uint  `json:"priority" example:"1"`
 	Address   string `json:"address" example:"ул. Ленина, д. 5, кв. 12"` // Адрес вызова
 	Phone     string `json:"phone" example:"+79991234567"`               // Телефон для связи

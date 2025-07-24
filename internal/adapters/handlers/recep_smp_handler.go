@@ -9,22 +9,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetReceptionsSMPByCallID godoc
-// @Summary Получить СМП приёмы по ID вызова
-// @Description Возвращает список приёмов скорой медицинской помощи для указанного вызова
+// GetReceptionsSMPByCallId godoc
+// @Summary Получить СМП приём по ID
+// @Description Возвращает список приёмов скорой медицинской помощи для указанного врача с пагинацией
 // @Tags SMP
 // @Accept json
 // @Produce json
 // @Param call_id path uint true "ID вызова"
 // @Param page query int false "Номер страницы" default(1)
-// @Param per_page query int false "Количество записей на страницу" default(5)
-// @Success 200 {array} entities.ReceptionSMP "Информация о приёме скорой помощи"
+// @Param perPage query int false "Количество записей на страницу" default(5)
+// @Success 200 {array} models.ReceptionSMPResponseList "Информация о приёме скорой помощи"
 // @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
 // @Failure 401 {object} IncorrectDataError "Некорректный ID вызова"
 // @Failure 422 {object} ValidationError "Ошибка валидации"
 // @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
-// @Router /emergency/{doctor_id}/receptions [get]
-func (h *Handler) GetReceptionsSMPByCallID(c *gin.Context) {
+// @Router /emergency/calls/{call_id} [get]
+func (h *Handler) GetReceptionsSMPByCallId(c *gin.Context) {
 
 	// Получаем doctor_id из URL
 	callIDStr := c.Param("call_id")
@@ -68,13 +68,14 @@ func (h *Handler) GetReceptionsSMPByCallID(c *gin.Context) {
 // @Tags SMP
 // @Accept json
 // @Produce json
+// @Param call_id path uint true "ID вызова"
 // @Param smp_id path uint true "ID приёма СМП"
-// @Success 200 {object} entities.MedService "Информация о приёме и медуслугах"
+// @Success 200 {object} models.ReceptionSMPResponse "Информация о приёме и медуслугах"
 // @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
 // @Failure 401 {object} IncorrectDataError "Некорректный ID вызова"
 // @Failure 422 {object} ValidationError "Ошибка валидации"
 // @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
-// @Router /emergency/{smp_id} [get]
+// @Router /emergency/smps/{call_id}/{smp_id} [get]
 func (h *Handler) GetReceptionWithMedServices(c *gin.Context) {
 	// Парсинг ID
 	smp_id, err := h.service.ParseUintString(c.Param("smp_id"))
@@ -92,7 +93,7 @@ func (h *Handler) GetReceptionWithMedServices(c *gin.Context) {
 	}
 
 	// Вызов usecase
-	reception, err := h.usecase.GetReceptionWithMedServicesByID(uint(smp_id), uint(call_id))
+	reception, err := h.usecase.GetReceptionWithMedServicesByID(smp_id, call_id)
 	if err != nil {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "Reception not found", false)
 		return
@@ -127,6 +128,7 @@ func (h *Handler) GetReceptionWithMedServices(c *gin.Context) {
 // @Tags SMP
 // @Accept json
 // @Produce json
+// @Param input body models.CreateEmergencyRequest true "Данные для создания заключения"
 // @Success 200 {object} entities.ReceptionSMP "Создание заключения для пациента"
 // @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
 // @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
@@ -159,7 +161,7 @@ func (h *Handler) CreateSMPReception(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param recep_id path uint true "ID приёма"
-// @Param info body models.UpdateReceptionHospitalRequest true "Данные для обновления"
+// @Param info body models.UpdateSmpReceptionRequest true "Данные для обновления"
 // @Success 200 {array} entities.ReceptionHospital
 // @Failure 400 {object} IncorrectFormatError "Неверный формат запроса"
 // @Failure 401 {object} IncorrectDataError "Некорректный ID приёма"

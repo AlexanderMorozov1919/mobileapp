@@ -8,7 +8,6 @@ import (
 
 	"github.com/AlexanderMorozov1919/mobileapp/internal/config"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
-	"github.com/AlexanderMorozov1919/mobileapp/internal/usecases"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -22,25 +21,21 @@ func init() {
 }
 
 type Handler struct {
-	logger      *logging.Logger
-	usecase     interfaces.Usecases
-	service     interfaces.Service
-	authUC      *usecases.AuthUsecase
-	authHandler *AuthHandler
+	logger  *logging.Logger
+	usecase interfaces.Usecases
+	service interfaces.Service
 }
 
 // NewHandler создает новый экземпляр Handler со всеми зависимостями
-func NewHandler(usecase interfaces.Usecases, parentLogger *logging.Logger, service interfaces.Service, authUC *usecases.AuthUsecase) *Handler {
+func NewHandler(usecase interfaces.Usecases, parentLogger *logging.Logger, service interfaces.Service) *Handler {
 	handlerLogger := parentLogger.WithPrefix("HANDLER")
 	handlerLogger.Info("Handler initialized",
 		"component", "GENERAL",
 	)
 	return &Handler{
-		logger:      handlerLogger,
-		usecase:     usecase,
-		service:     service,
-		authUC:      authUC,
-		authHandler: NewAuthHandler(authUC),
+		logger:  handlerLogger,
+		usecase: usecase,
+		service: service,
 	}
 }
 
@@ -68,8 +63,7 @@ func ProvideRouter(h *Handler, cfg *config.Config, swagCfg *swagger.Config) http
 
 	// Авторизация
 	authGroup := baseRouter.Group("/auth")
-	authHandler := NewAuthHandler(h.authUC)
-	authGroup.POST("/", gin.WrapF(authHandler.LoginDoctor))
+	authGroup.POST("/", h.LoginDoctor)
 
 	// Доктора
 	doctorGroup := baseRouter.Group("/doctors")
@@ -90,6 +84,7 @@ func ProvideRouter(h *Handler, cfg *config.Config, swagCfg *swagger.Config) http
 	hospitalGroup := baseRouter.Group("/hospital")
 	hospitalGroup.GET("/receptions/patients/:pat_id", h.GetAllHospitalReceptionsByPatientID) // Все приемы пациента
 	hospitalGroup.GET("/receptions/:doc_id", h.GetReceptionsHospitalByDoctorID)              // Все приемы доктора
+	hospitalGroup.GET("/receptions/:doc_id/:hosp_id", h.GetReceptionHosptalById)
 	hospitalGroup.PUT("/receptions/:recep_id", h.UpdateReceptionHospitalByReceptionID)
 
 	// Медуслуги
@@ -99,8 +94,9 @@ func ProvideRouter(h *Handler, cfg *config.Config, swagCfg *swagger.Config) http
 	// Звонки СМП
 	emergencyGroup := baseRouter.Group("/emergency")
 	emergencyGroup.GET("/:doc_id", h.GetEmergencyCallsByDoctorAndDate)
-	emergencyGroup.GET("/:doc_id/:call_id", h.GetReceptionsSMPByCallID)
-	emergencyGroup.GET("/:doc_id/:call_id/:smp_id", h.GetReceptionWithMedServices)
+	emergencyGroup.GET("/calls/:call_id", h.GetReceptionsSMPByCallId)
+	emergencyGroup.GET("/smps/:call_id/:smp_id", h.GetReceptionWithMedServices)
+
 	emergencyGroup.POST("/receptions", h.CreateSMPReception)
 	emergencyGroup.PUT("/receptions/:recep_id", h.UpdateReceptionSMPByReceptionID)
 

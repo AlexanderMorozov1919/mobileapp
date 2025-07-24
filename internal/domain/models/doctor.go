@@ -1,7 +1,5 @@
 package models
 
-import "github.com/AlexanderMorozov1919/mobileapp/internal/domain/entities"
-
 // DoctorResponse - полная информация о враче
 // @Description Содержит все данные о враче включая идентификационные и контактные данные
 type DoctorResponse struct {
@@ -13,8 +11,8 @@ type DoctorResponse struct {
 }
 
 type DoctorInfoResponse struct {
-	FullName       string                  `json:"full_name" example:"Иванов Иван Иванович"` // Полное имя врача
-	Specialization entities.Specialization `json:"specialization"`
+	FullName       string `json:"full_name" example:"Иванов Иван Иванович"` // Полное имя врача
+	Specialization string `json:"specialization"`
 }
 
 // CreateDoctorRequest - запрос на создание врача

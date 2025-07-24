@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/AlexanderMorozov1919/mobileapp/internal/domain/models"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // UpdateReceptionHospitalByReceptionID godoc
@@ -137,4 +138,22 @@ func (h *Handler) GetAllHospitalReceptionsByPatientID(c *gin.Context) {
 	}
 
 	h.ResultResponse(c, "Patients retrieved successfully", Array, receptions)
+}
+
+func (h *Handler) GetReceptionHosptalById(c *gin.Context) {
+	// Парсинг ID
+	hosp_id, err := h.service.ParseUintString(c.Param("hosp_id"))
+
+	if err != nil {
+		h.ErrorResponse(c, err, http.StatusBadRequest, "parameter 'hosp_id' must be an integer", false)
+		return
+	}
+
+	// Вызов usecase
+	reception, err := h.usecase.GetReceptionHospitalByID(uint(hosp_id))
+	if err != nil {
+		h.ErrorResponse(c, err, http.StatusBadRequest, "Reception not found", false)
+		return
+	}
+	h.ResultResponse(c, "Success ger reception with med services", Object, reception)
 }

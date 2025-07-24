@@ -20,16 +20,13 @@ func DefaultCORSConfig() *CORSConfig {
 		AllowOrigins: []string{}, // Теперь пустой массив, так как будем использовать из конфига
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders: []string{
-			"Origin",
-			"Content-Type",
-			"Content-Length",
-			"Accept-Encoding",
-			"X-CSRF-Token",
-			"Authorization",
-			"Accept",
-			"Cache-Control",
-			"X-Requested-With",
-			"X-Access-Token",
+			"Content-Type",    // Для указания типа данных (JSON, FormData)
+			"Content-Length",  // Для запросов с телом
+			"Accept-Encoding", // Поддержка gzip/deflate (методы сжатия)
+			"Authorization",   // Стандартный заголовок для токенов
+			"Accept",          // Для принимаемых данных
+			"Cache-Control",   // Управление кешированием
+			"X-CSRF-Token",    // Защита от подделки запросов
 		},
 	}
 }

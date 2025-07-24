@@ -730,11 +730,11 @@ func seedTestData(db *gorm.DB) error {
 
 		// Создаем экстренный вызов с уникальным возрастающим приоритетом
 		emergencyCall := entities.EmergencyCall{
-			DoctorID: doctor.ID,
-			Type:     i%2 == 0,
-			Priority: priority, // Уникальный возрастающий приоритет
-			Address:  addresses[i%len(addresses)],
-			Phone:    fmt.Sprintf("+7915%07d", 2000000+i),
+			DoctorID:  doctor.ID,
+			Emergency: i%2 == 0,
+			Priority:  priority, // Уникальный возрастающий приоритет
+			Address:   addresses[i%len(addresses)],
+			Phone:     fmt.Sprintf("+7915%07d", 2000000+i),
 		}
 
 		if err := db.Create(&emergencyCall).Error; err != nil {

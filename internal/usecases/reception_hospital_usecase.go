@@ -87,12 +87,10 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByPatientID(patientId ui
 	var result []models.ReceptionHospitalResponse
 	for _, reception := range receptions {
 		response := models.ReceptionHospitalResponse{
+			ID: reception.ID,
 			Doctor: models.DoctorInfoResponse{
-				FullName: reception.Doctor.FullName,
-				Specialization: entities.Specialization{
-					ID:    reception.Doctor.Specialization.ID,
-					Title: reception.Doctor.Specialization.Title,
-				},
+				FullName:       reception.Doctor.FullName,
+				Specialization: reception.CachedSpecialization,
 			},
 			Patient: models.ShortPatientResponse{
 				ID:        reception.Patient.ID,
@@ -148,11 +146,8 @@ func (u *ReceptionHospitalUsecase) UpdateReceptionHospital(input *models.UpdateR
 	}
 	return models.ReceptionHospitalResponse{
 		Doctor: models.DoctorInfoResponse{
-			FullName: reception.Doctor.FullName,
-			Specialization: entities.Specialization{
-				ID:    reception.Doctor.Specialization.ID,
-				Title: reception.Doctor.Specialization.Title,
-			},
+			FullName:       reception.Doctor.FullName,
+			Specialization: reception.CachedSpecialization,
 		},
 		Patient: models.ShortPatientResponse{
 			ID:        reception.Patient.ID,
@@ -166,12 +161,12 @@ func (u *ReceptionHospitalUsecase) UpdateReceptionHospital(input *models.UpdateR
 	}, nil
 }
 
-func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByDoctorID(doc_id uint, page, count int, filter, order string) (models.FilterResponse[[]models.ReceptionFullResponse], *errors.AppError) {
+func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByDoctorID(doc_id uint, page, count int, filter, order string) (models.FilterResponse[[]models.ReceptionHospitalResponse], *errors.AppError) {
 	var queryFilter string
 	var queryOrder string
 	var parameters []interface{}
 
-	empty := models.FilterResponse[[]models.ReceptionFullResponse]{}
+	empty := models.FilterResponse[[]models.ReceptionHospitalResponse]{}
 
 	// Статические поля модели (имя таблицы/колонки и их типы)
 	entityFields, err := getFieldTypes(entities.ReceptionHospital{})
@@ -229,45 +224,36 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByDoctorID(doc_id uint, 
 		totalPages = int(math.Ceil(float64(totalRows) / float64(count)))
 	}
 
-	// Преобразование в DTO
-	result := make([]models.ReceptionFullResponse, len(receptions))
-	for i, reception := range receptions {
+	// Преобразуем в DTO
+	response := make([]models.ReceptionHospitalResponse, len(receptions))
+	for i, rec := range receptions {
 
-		// Формируем специализированные данные
-		var specData interface{}
-		if reception.SpecializationDataDecoded != nil {
-			specData = reception.SpecializationDataDecoded
-		} else if reception.SpecializationData.Status == pgtype.Present {
-			// Если данные не декодированы, но есть в JSONB
-			var rawData map[string]interface{}
-			if err := reception.SpecializationData.AssignTo(&rawData); err == nil {
-				specData = rawData
-			}
+		doctor := models.DoctorInfoResponse{
+			FullName:       rec.Doctor.FullName,
+			Specialization: rec.CachedSpecialization,
 		}
 
-		result[i] = models.ReceptionFullResponse{
-			ID:          reception.ID,
-			Date:        reception.Date.Format("02.01.2006 15:04"),
-			Status:      getStatusText(reception.Status),
-			PatientName: reception.Patient.FullName,
-			PatientID:   reception.Patient.ID,
-			Diagnosis:   reception.Diagnosis,
-			Address:     reception.Address,
-			Doctor: models.DoctorShortResponse{
-				ID:             reception.Doctor.ID,
-				FullName:       reception.Doctor.FullName,
-				Specialization: reception.Doctor.Specialization.Title,
-				// TODO: добавить специализацию если нужно
-			},
-			Recommendations:    reception.Recommendations,
-			SpecializationData: specData,
+		patient := models.ShortPatientResponse{
+			ID:        rec.Doctor.ID,
+			FullName:  rec.Doctor.FullName,
+			BirthDate: rec.Patient.BirthDate,
+			IsMale:    rec.Patient.IsMale,
+		}
+
+		response[i] = models.ReceptionHospitalResponse{
+			ID:              rec.ID,
+			Doctor:          doctor,
+			Patient:         patient,
+			Diagnosis:       rec.Diagnosis,
+			Recommendations: rec.Recommendations,
+			Status:          string(rec.Status),
 		}
 	}
 
-	return models.FilterResponse[[]models.ReceptionFullResponse]{
-		Hits:        result,
+	return models.FilterResponse[[]models.ReceptionHospitalResponse]{
+		Hits:        response,
 		CurrentPage: page,
-		HitsPerPage: len(result),
+		HitsPerPage: len(response),
 		TotalHits:   int(totalRows),
 		TotalPages:  totalPages,
 	}, nil
@@ -347,4 +333,47 @@ func (u *ReceptionHospitalUsecase) GetHospitalPatientsByDoctorID(doc_id uint, pa
 		TotalHits:   int(totalRows),
 		TotalPages:  totalPages,
 	}, nil
+}
+
+func (u *ReceptionHospitalUsecase) GetReceptionHospitalByID(
+	hospID uint,
+) (models.ReceptionFullResponse, error) {
+	// Получаем данные из репозитория
+	reception, err := u.repo.GetReceptionHospitalByID(hospID)
+	if err != nil {
+		return models.ReceptionFullResponse{}, fmt.Errorf("failed to get reception: %w", err)
+	}
+
+	doctor := models.DoctorShortResponse{
+		ID:             reception.Doctor.ID,
+		FullName:       reception.Doctor.FullName,
+		Specialization: reception.CachedSpecialization,
+	}
+
+	// Формируем специализированные данные
+	var specData interface{}
+	if reception.SpecializationDataDecoded != nil {
+		specData = reception.SpecializationDataDecoded
+	} else if reception.SpecializationData.Status == pgtype.Present {
+		// Если данные не декодированы, но есть в JSONB
+		var rawData map[string]interface{}
+		if err := reception.SpecializationData.AssignTo(&rawData); err == nil {
+			specData = rawData
+		}
+	}
+
+	response := models.ReceptionFullResponse{
+		ID:                 reception.ID,
+		Date:               reception.Date.Format("02.01.2006 15:04"),
+		Status:             getStatusText(reception.Status),
+		PatientName:        reception.Patient.FullName,
+		PatientID:          reception.Patient.ID,
+		Diagnosis:          reception.Diagnosis,
+		Address:            reception.Address,
+		Doctor:             doctor,
+		Recommendations:    reception.Recommendations,
+		SpecializationData: specData,
+	}
+
+	return response, nil
 }

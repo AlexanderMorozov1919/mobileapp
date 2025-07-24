@@ -174,7 +174,7 @@ func (r *ReceptionSmpRepositoryImpl) GetWithPatientsByEmergencyCallID(
 	err := baseQuery.
 		Preload("Patient").
 		Preload("MedServices").
-		Preload("Doctor.Specialization").
+		Preload("Doctor").
 		Order("created_at DESC").
 		Offset(offset).
 		Limit(perPage).
@@ -186,24 +186,10 @@ func (r *ReceptionSmpRepositoryImpl) GetWithPatientsByEmergencyCallID(
 	}
 
 	for i := range receptions {
-		if receptions[i].SpecializationData.Status == pgtype.Present &&
-			len(receptions[i].SpecializationData.Bytes) > 0 {
 
-			specTitle := ""
-			// Безопасная проверка для структуры
-			if receptions[i].Doctor.Specialization.ID != 0 { // Проверка по ID
-				specTitle = receptions[i].Doctor.Specialization.Title
-			}
-
-			decodedData, err := decodeSpecializationData(
-				receptions[i].SpecializationData,
-				specTitle,
-			)
-			if err != nil {
-				log.Printf("Failed to decode data for reception %d: %v", receptions[i].ID, err)
-				continue
-			}
-			receptions[i].SpecializationDataDecoded = decodedData
+		receptions[i].SpecializationDataDecoded = pgtype.JSONB{
+			Bytes:  []byte(`{"key":"value"}`),
+			Status: pgtype.Present,
 		}
 	}
 
@@ -274,9 +260,6 @@ func decodeSpecializationData(data pgtype.JSONB, specialization string) (interfa
 		fmt.Print("BEDAAAA")
 		return nil, nil
 	}
-
-	// Логгирование сырых данных
-	log.Printf("Raw JSON data: %s", string(data.Bytes))
 
 	var result interface{}
 	switch specialization {

@@ -1,6 +1,10 @@
 package receptionHospital
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/AlexanderMorozov1919/mobileapp/pkg/errors"
@@ -106,19 +110,6 @@ func (r *ReceptionHospitalRepositoryImpl) GetReceptionsHospitalByDateRange(start
 	return receptions, nil
 }
 
-func getReceptionPriority(status entities.ReceptionStatus) int {
-	switch status {
-	case entities.StatusScheduled:
-		return 1
-	case entities.StatusCompleted:
-		return 2
-	case entities.StatusCancelled, entities.StatusNoShow:
-		return 3
-	default:
-		return 4
-	}
-}
-
 func getOrderByStatusAndDate() string {
 	return `
         CASE 
@@ -164,34 +155,9 @@ func (r *ReceptionHospitalRepositoryImpl) GetReceptionsHospitalByDoctorAndDate(d
 
 	// Декодируем JSONB данные для каждого приема
 	for i := range receptions {
-		if receptions[i].SpecializationData.Status == pgtype.Present && receptions[i].Doctor.Specialization.Title != "" {
-			var specData interface{}
-
-			switch receptions[i].Doctor.Specialization.Title {
-			// case "Терапевт":
-			// 	specData = &entities.TherapistData{}
-			// case "Кардиолог":
-			// 	specData = &entities.CardiologistData{}
-			case "Невролог":
-				specData = &entities.NeurologistData{}
-			case "Травматолог":
-				specData = &entities.TraumatologistData{}
-			default:
-				// Для неизвестных специализаций используем generic map
-				var genericData map[string]interface{}
-				if err := receptions[i].SpecializationData.AssignTo(&genericData); err == nil {
-					receptions[i].SpecializationDataDecoded = genericData
-				}
-				continue
-			}
-
-			if err := receptions[i].SpecializationData.AssignTo(specData); err == nil {
-				receptions[i].SpecializationDataDecoded = specData
-			} else {
-				// log.Printf("Failed to decode specialization data for reception %d: %v",
-				//     receptions[i].ID, err)
-				errors.NewDBError(op, err)
-			}
+		receptions[i].SpecializationDataDecoded = pgtype.JSONB{
+			Bytes:  []byte(`{"key":"value"}`),
+			Status: pgtype.Present,
 		}
 	}
 
@@ -402,4 +368,96 @@ func (r *ReceptionHospitalRepositoryImpl) GetAllHospitalReceptionsByPatientID(pa
 		return nil, 0, errors.NewDBError(op, err)
 	}
 	return receptions, total, nil
+}
+
+func (r *ReceptionHospitalRepositoryImpl) GetHospitalReceptionByID(
+	hospID uint,
+) (entities.ReceptionHospital, error) {
+	op := "repo.ReceptionHospital.GetHospitalReceptionByID"
+	var reception entities.ReceptionHospital
+
+	// Явно указываем нужные поля для загрузки
+	query := r.db.
+		Preload("Patient").
+		Preload("Doctor.Specialization").
+		Where("id = ?", hospID)
+
+	err := query.First(&reception).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.ReceptionHospital{}, errors.NewNotFoundError("reception not found")
+		}
+		return entities.ReceptionHospital{}, errors.NewDBError(op, err)
+	}
+
+	// Улучшенное декодирование JSONB
+	if err := decodeReceptionSpecializationData(&reception); err != nil {
+		// log.Printf("%s: failed to decode specialization data: %v", op, err)
+		return entities.ReceptionHospital{}, errors.NewDBError(op, err)
+	}
+
+	return reception, nil
+}
+
+// Вынесенная функция для декодирования
+func decodeReceptionSpecializationData(reception *entities.ReceptionHospital) error {
+	// Проверяем что данные существуют и не пустые
+	if reception.SpecializationData.Status != pgtype.Present ||
+		len(reception.SpecializationData.Bytes) == 0 {
+		return nil
+	}
+
+	// Получаем название специализации (с проверкой)
+	specTitle := ""
+	if reception.Doctor.Specialization.ID != 0 { // Проверка что специализация загружена
+		specTitle = reception.Doctor.Specialization.Title
+	}
+
+	decoded, err := decodeSpecializationData(reception.SpecializationData, specTitle)
+	if err != nil {
+		return fmt.Errorf("decoding failed: %w", err)
+	}
+
+	reception.SpecializationDataDecoded = decoded
+	return nil
+}
+
+// Обновлённая функция декодирования
+func decodeSpecializationData(data pgtype.JSONB, specialization string) (interface{}, error) {
+	// Проверка наличия данных
+	if data.Status != pgtype.Present || len(data.Bytes) == 0 {
+		fmt.Print("BEDAAAA")
+		return nil, nil
+	}
+
+	var result interface{}
+	switch specialization {
+	case "Невролог":
+		result = new(entities.NeurologistData)
+	case "Травматолог":
+		result = new(entities.TraumatologistData)
+	case "Психиатр":
+		result = new(entities.PsychiatristData)
+	case "Уролог":
+		result = new(entities.UrologistData)
+	case "Оториноларинголог":
+		result = new(entities.OtolaryngologistData)
+	case "Проктолог":
+		result = new(entities.ProctologistData)
+	case "Аллерголог":
+		result = new(entities.AllergologistData)
+	default:
+		result = make(map[string]interface{})
+	}
+
+	// Декодирование с проверкой структуры
+	decoder := json.NewDecoder(bytes.NewReader(data.Bytes))
+	decoder.DisallowUnknownFields() // Для отлова несоответствий структур
+
+	if err := decoder.Decode(&result); err != nil {
+		log.Printf("Decoding error for %s: %v, data: %s", specialization, err, string(data.Bytes))
+		return nil, fmt.Errorf("decoding error: %w", err)
+	}
+
+	return result, nil
 }

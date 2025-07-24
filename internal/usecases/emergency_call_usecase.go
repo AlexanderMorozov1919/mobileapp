@@ -107,7 +107,7 @@ func (u *EmergencyCallUsecase) GetEmergencyCallsByDoctorAndDate(
 			CreatedAt: call.CreatedAt.Format(time.RFC3339),
 			Phone:     call.Phone,
 			Priority:  call.Priority,
-			Type:      call.Type,
+			Emergency: call.Emergency,
 			Address:   call.Address,
 		}
 	}

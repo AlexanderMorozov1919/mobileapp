@@ -139,7 +139,7 @@ func (r *EmergencyCallRepositoryImpl) GetEmergencyReceptionsByDoctorAndDate(
 		Order("priority IS NULL"). // NULL значения идут последними (FALSE(0) раньше TRUE(1))
 		Order("priority ASC").     // Уникальные приоритеты от 1 по возрастанию
 		// Затем по типу (true выше)
-		Order("type DESC").
+		Order("emergency DESC").
 		// Затем по дате создания (чем раньше - тем выше)
 		Order("created_at ASC").
 		Offset(offset).
