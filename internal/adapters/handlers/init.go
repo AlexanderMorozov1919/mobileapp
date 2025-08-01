@@ -61,6 +61,8 @@ func ProvideRouter(h *Handler, cfg *config.Config, swagCfg *swagger.Config) http
 	// Общая группа для API
 	baseRouter := r.Group("/api/v1")
 
+	//Версия
+	baseRouter.GET("/version", h.GetVersionProject)
 	// Авторизация
 	authGroup := baseRouter.Group("/auth")
 	authGroup.POST("/", h.LoginDoctor)

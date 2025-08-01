@@ -3,8 +3,8 @@ package models
 // DoctorLoginRequest - запрос на авторизацию врача
 // @Description Запрос для входа врача в систему
 type DoctorLoginRequest struct {
-	Username string `json:"username" binding:"required" example:"doctor_ivanov"` // Логин (телефон)
-	Password string `json:"password" binding:"required" example:"123"`           // Пароль
+	Phone    string `json:"phone" binding:"required" example:"+79622840765"` // Логин (телефон)
+	Password string `json:"password" binding:"required" example:"123"`       // Пароль
 }
 
 // DoctorAuthResponse - ответ на авторизацию врача

@@ -25,6 +25,11 @@ import (
 // @Failure 500 {object} InternalServerError "Внутренняя ошибка сервера"
 // @Router /hospital/receptions/{recep_id} [put]
 func (h *Handler) UpdateReceptionHospitalByReceptionID(c *gin.Context) {
+	rec_id, err := h.service.ParseUintString(c.Param("recep_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid reception ID"})
+		return
+	}
 	var input models.UpdateReceptionHospitalRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "Error create ReceptionHospitalRequest", true)
@@ -36,7 +41,7 @@ func (h *Handler) UpdateReceptionHospitalByReceptionID(c *gin.Context) {
 		return
 	}
 
-	recepResponse, eerr := h.usecase.UpdateReceptionHospital(&input)
+	recepResponse, eerr := h.usecase.UpdateReceptionHospital(rec_id, &input)
 	if eerr != nil {
 		h.ErrorResponse(c, eerr.Err, eerr.Code, eerr.Message, eerr.IsUserFacing)
 		return

@@ -30,7 +30,7 @@ func (u *DoctorUsecase) CreateDoctor(doctor *models.CreateDoctorRequest) (entiti
 	log.Println("")
 	createDoctor := entities.Doctor{
 		FullName:         doctor.FullName,
-		Login:            doctor.Login,
+		Phone:            doctor.Phone,
 		PasswordHash:     string(passwordHash),
 		SpecializationID: doctor.SpecializationID,
 	}

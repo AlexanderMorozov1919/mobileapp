@@ -9,9 +9,9 @@ type Doctor struct {
 	ID        uint      `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-
+  
 	FullName     string `gorm:"not null" json:"full_name" example:"Иванов Иван Иванович"`
-	Login        string `gorm:"unique;not null" json:"login" example:"doctor_ivanov"`
+	Phone        string `gorm:"unique;not null" json:"phone" example:"+79991234567"`
 	PasswordHash string `gorm:"not null" json:"-"`
 
 	SpecializationID uint            `gorm:"not null;index" json:"-"`

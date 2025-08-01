@@ -22,10 +22,10 @@ func NewAuthUsecase(repo interfaces.Repository, secretKey string) *AuthUsecase {
 	}
 }
 
-func (uc *AuthUsecase) LoginDoctor(ctx context.Context, login, password string) (uint, string, *errors.AppError) {
+func (uc *AuthUsecase) LoginDoctor(ctx context.Context, phone, password string) (uint, string, *errors.AppError) {
 	op := "usecase.Auth.LoginDoctor"
 
-	user, err := uc.repo.GetByLogin(ctx, login)
+	user, err := uc.repo.GetByLogin(ctx, phone)
 	if err != nil || user.ID == 0 {
 		return 0, "", errors.NewUnauthorizedError(op, "invalid credentials")
 	}

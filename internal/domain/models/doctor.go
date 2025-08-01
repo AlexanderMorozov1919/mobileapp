@@ -19,7 +19,7 @@ type DoctorInfoResponse struct {
 // @Description Используется для регистрации нового врача в системе
 type CreateDoctorRequest struct {
 	FullName         string `json:"full_name" binding:"required" example:"Иванов Иван Иванович"` // ФИО врача (обязательное)
-	Login            string `json:"login" binding:"required" example:"+79123456789"`             // Логин (обязательное)
+	Phone            string `json:"phone" binding:"required" example:"+79123456789"`             // Логин (обязательное)
 	Password         string `json:"password" binding:"required" example:"qwerty123"`             // Пароль (обязательное)
 	SpecializationID uint   `json:"specialization_id" binding:"required" example:"1"`            // Специализация (обязательное)
 }

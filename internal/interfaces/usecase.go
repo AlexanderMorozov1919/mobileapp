@@ -23,7 +23,7 @@ type Usecases interface {
 
 type ReceptionHospitalUsecase interface {
 	GetHospitalReceptionsByPatientID(patientId uint, page, count int, filter, order string) (models.FilterResponse[[]models.ReceptionHospitalResponse], *errors.AppError)
-	UpdateReceptionHospital(input *models.UpdateReceptionHospitalRequest) (models.ReceptionHospitalResponse, *errors.AppError)
+	UpdateReceptionHospital(id uint, input *models.UpdateReceptionHospitalRequest) (models.ReceptionHospitalResponse, *errors.AppError)
 	GetHospitalReceptionsByDoctorID(doc_id uint, page, count int, filter, order string) (models.FilterResponse[[]models.ReceptionHospitalResponse], *errors.AppError)
 	GetHospitalPatientsByDoctorID(doc_id uint, page, count int, filter, order string) (models.FilterResponse[[]entities.Patient], *errors.AppError)
 	GetReceptionHospitalByID(hospID uint) (models.ReceptionFullResponse, error)
@@ -88,5 +88,5 @@ type PatientUsecase interface {
 type PersonalInfoUsecase interface{}
 
 type AuthUsecase interface {
-	LoginDoctor(ctx context.Context, login, password string) (uint, string, *errors.AppError)
+	LoginDoctor(ctx context.Context, phone, password string) (uint, string, *errors.AppError)
 }

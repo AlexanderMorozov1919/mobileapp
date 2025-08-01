@@ -27,20 +27,52 @@ func (r *ReceptionSmpRepositoryImpl) UpdateReceptionSmp(id uint, updateMap map[s
 	op := "repo.ReceptionSmp.UpdateReceptionSmp"
 
 	var updatedReception entities.ReceptionSMP
-	result := r.db.
+	tx := r.db.Begin()
+
+	// Обработка связи med_services отдельно
+	var medServiceIDs []uint
+	if raw, ok := updateMap["med_services"]; ok {
+		if arr, ok := raw.([]interface{}); ok {
+			for _, id := range arr {
+				if f64, ok := id.(float64); ok {
+					medServiceIDs = append(medServiceIDs, uint(f64))
+				}
+			}
+		}
+		delete(updateMap, "med_services") // удаляем, чтобы не было попытки обновить колонку
+	}
+
+	// Обновление обычных полей
+	result := tx.
 		Clauses(clause.Returning{}).
 		Model(&updatedReception).
 		Where("id = ?", id).
 		Updates(updateMap)
 
 	if result.Error != nil {
+		tx.Rollback()
 		return 0, errors.NewDBError(op, result.Error)
 	}
 	if result.RowsAffected == 0 {
+		tx.Rollback()
 		return 0, errors.NewNotFoundError("reception not found")
 	}
 
-	return updatedReception.ID, nil
+	// Обновление связей many2many
+	if len(medServiceIDs) > 0 {
+		var medServices []entities.MedService
+		if err := tx.Where("id IN ?", medServiceIDs).Find(&medServices).Error; err != nil {
+			tx.Rollback()
+			return 0, errors.NewDBError(op+": find med_services", err)
+		}
+		if err := tx.Model(&updatedReception).Association("MedServices").Replace(&medServices); err != nil {
+			tx.Rollback()
+			return 0, errors.NewDBError(op+": replace med_services", err)
+		}
+	}
+
+	returnedID := updatedReception.ID
+	return returnedID, tx.Commit().Error
 }
 
 func (r *ReceptionSmpRepositoryImpl) DeleteReceptionSmp(id uint) error {

@@ -17,10 +17,10 @@ type ReceptionHospitalResponse struct {
 }
 
 type UpdateReceptionHospitalRequest struct {
-	ID              uint                     `json:"id" example:"1"`
-	Diagnosis       string                   `json:"diagnosis" example:"Грипп" rus:"Диагноз"`
-	Recommendations string                   `json:"recommendations" example:"Постельный режим" rus:"Рекомендации"`
-	Status          entities.ReceptionStatus `gorm:"not null" json:"status" example:"scheduled" rus:"Статус госпитализации"`
+	Diagnosis          string                   `json:"diagnosis" example:"Грипп" rus:"Диагноз"`
+	Recommendations    string                   `json:"recommendations" example:"Постельный режим" rus:"Рекомендации"`
+	Status             entities.ReceptionStatus `json:"status" example:"scheduled" rus:"Статус госпитализации"`
+	SpecializationData interface{}              `json:"specialization_data"`
 }
 
 // ReceptionFullResponse - полная информация о приеме
@@ -28,7 +28,9 @@ type ReceptionFullResponse struct {
 	ID              uint                `json:"id"`
 	Date            string              `json:"date" example:"15.10.2023 14:30"`
 	Status          string              `json:"status" example:"Запланирован"`
-	PatientName     string              `json:"patient_name" example:"Иванов Иван"`
+	LastName        string              `json:"last_name" example:"Смирнов"`
+	FirstName       string              `json:"first_name" example:"Алексей"`
+	MiddleName      string              `json:"middle_name" example:"Петрович"`
 	PatientID       uint                `json:"patient_id" example:"5"`
 	Diagnosis       string              `json:"diagnosis" example:"ОРВИ"`
 	Address         string              `json:"address" example:"Москва, ул. Ленина, д. 15"`

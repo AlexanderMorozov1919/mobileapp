@@ -3,6 +3,7 @@ package usecases
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"time"
 
@@ -95,11 +96,13 @@ func (u *ReceptionSmpUsecase) CreateReceptionSMP(input *models.CreateReceptionSm
 				true,
 			)
 		}
-
+		log.Printf("PatientName: %s", input.Patient.LastName)
 		newPatient := entities.Patient{
-			FullName:  input.Patient.FullName,
-			BirthDate: parsedTime,
-			IsMale:    input.Patient.IsMale,
+			LastName:   input.Patient.LastName,
+			FirstName:  input.Patient.FirstName,
+			MiddleName: input.Patient.MiddleName,
+			BirthDate:  parsedTime,
+			IsMale:     input.Patient.IsMale,
 		}
 
 		patientID, createErr := u.patientRepo.CreatePatient(newPatient)
@@ -463,7 +466,7 @@ func (u *ReceptionSmpUsecase) UpdateReceptionSMP(id uint, updateData map[string]
 	}
 
 	for key, value := range updateData {
-		if key != "specialization_data_updates" {
+		if key != "specialization_data_updates" && key != "total_cost" {
 			updateMap[key] = value
 		}
 	}
@@ -517,10 +520,12 @@ func (u *ReceptionSmpUsecase) GetReceptionsSMPByEmergencyCall(
 		}
 
 		patient := models.ShortPatientResponse{
-			ID:        rec.PatientID,
-			FullName:  rec.Patient.FullName,
-			BirthDate: rec.Patient.BirthDate,
-			IsMale:    rec.Patient.IsMale,
+			ID:         rec.PatientID,
+			LastName:   rec.Patient.LastName,
+			FirstName:  rec.Patient.FirstName,
+			MiddleName: rec.Patient.MiddleName,
+			BirthDate:  rec.Patient.BirthDate,
+			IsMale:     rec.Patient.IsMale,
 		}
 
 		response[i] = models.ReceptionSmpShortResponse{
@@ -577,7 +582,9 @@ func (u *ReceptionSmpUsecase) GetReceptionWithMedServicesByID(
 	// Формируем ответ
 	response := models.ReceptionSMPResponse{
 		ID:                 reception.ID,
-		PatientName:        reception.Patient.FullName,
+		LastName:           reception.Patient.LastName,
+		FirstName:          reception.Patient.FirstName,
+		MiddleName:         reception.Patient.MiddleName,
 		Diagnosis:          reception.Diagnosis,
 		Recommendations:    reception.Recommendations,
 		Specialization:     reception.Doctor.Specialization.Title,

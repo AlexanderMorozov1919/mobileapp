@@ -10,7 +10,10 @@ type Patient struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	FullName  string    `gorm:"not null" json:"full_name" example:"Смирнов Алексей Петрович"`
+	LastName   string `gorm:"not null" json:"last_name" example:"Смирнов"`
+	FirstName  string `gorm:"not null" json:"first_name" example:"Алексей"`
+	MiddleName string `gorm:"default:null" json:"middle_name,omitempty" example:"Петрович"`
+
 	BirthDate time.Time `gorm:"not null" json:"birth_date" example:"1980-05-15T00:00:00Z"`
 	IsMale    bool      `gorm:"not null" json:"is_male" example:"true"`
 

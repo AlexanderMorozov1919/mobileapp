@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 
@@ -95,10 +96,12 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByPatientID(patientId ui
 				Specialization: reception.CachedSpecialization,
 			},
 			Patient: models.ShortPatientResponse{
-				ID:        reception.Patient.ID,
-				FullName:  reception.Patient.FullName,
-				BirthDate: reception.Patient.BirthDate,
-				IsMale:    reception.Patient.IsMale,
+				ID:         reception.Patient.ID,
+				LastName:   reception.Patient.LastName,
+				FirstName:  reception.Patient.FirstName,
+				MiddleName: reception.Patient.MiddleName,
+				BirthDate:  reception.Patient.BirthDate,
+				IsMale:     reception.Patient.IsMale,
 			},
 			Diagnosis:       reception.Diagnosis,
 			Recommendations: reception.Recommendations,
@@ -120,15 +123,38 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByPatientID(patientId ui
 	}, nil
 }
 
-func (u *ReceptionHospitalUsecase) UpdateReceptionHospital(input *models.UpdateReceptionHospitalRequest) (models.ReceptionHospitalResponse, *errors.AppError) {
+func (u *ReceptionHospitalUsecase) UpdateReceptionHospital(id uint, input *models.UpdateReceptionHospitalRequest) (models.ReceptionHospitalResponse, *errors.AppError) {
+
+	var specializationData pgtype.JSONB
+	//Пробуем сериализовать specialization_data в JSON
+	if input.SpecializationData != nil {
+		jsonData, err := json.Marshal(input.SpecializationData)
+		if err != nil {
+			return models.ReceptionHospitalResponse{}, errors.NewAppError(
+				errors.InvalidDataCode,
+				"failed to serialize specialization_data",
+				err,
+				true,
+			)
+		}
+
+		if err := specializationData.Set(json.RawMessage(jsonData)); err != nil {
+			return models.ReceptionHospitalResponse{}, errors.NewAppError(
+				errors.InvalidDataCode,
+				"failed to convert specialization_data to JSONB",
+				err,
+				true,
+			)
+		}
+	}
 	recepHospUpdate := map[string]interface{}{
-		"id":              input.ID,
-		"diagnosis":       input.Diagnosis,
-		"recommendations": input.Recommendations,
-		"status":          input.Status,
+		"diagnosis":           input.Diagnosis,
+		"recommendations":     input.Recommendations,
+		"status":              input.Status,
+		"specialization_data": specializationData,
 	}
 
-	if _, err := u.repo.UpdateReceptionHospital(input.ID, recepHospUpdate); err != nil {
+	if _, err := u.repo.UpdateReceptionHospital(id, recepHospUpdate); err != nil {
 		return models.ReceptionHospitalResponse{}, errors.NewAppError(
 			errors.InternalServerErrorCode,
 			"failed to update reception hospital data",
@@ -137,7 +163,7 @@ func (u *ReceptionHospitalUsecase) UpdateReceptionHospital(input *models.UpdateR
 		)
 	}
 
-	reception, err := u.repo.GetReceptionHospitalByID(input.ID)
+	reception, err := u.repo.GetReceptionHospitalByID(id)
 	if err != nil {
 		return models.ReceptionHospitalResponse{}, errors.NewAppError(
 			errors.InternalServerErrorCode,
@@ -152,10 +178,12 @@ func (u *ReceptionHospitalUsecase) UpdateReceptionHospital(input *models.UpdateR
 			Specialization: reception.CachedSpecialization,
 		},
 		Patient: models.ShortPatientResponse{
-			ID:        reception.Patient.ID,
-			FullName:  reception.Patient.FullName,
-			BirthDate: reception.Patient.BirthDate,
-			IsMale:    reception.Patient.IsMale,
+			ID:         reception.Patient.ID,
+			LastName:   reception.Patient.LastName,
+			FirstName:  reception.Patient.FirstName,
+			MiddleName: reception.Patient.MiddleName,
+			BirthDate:  reception.Patient.BirthDate,
+			IsMale:     reception.Patient.IsMale,
 		},
 		Diagnosis:       reception.Diagnosis,
 		Recommendations: reception.Recommendations,
@@ -236,10 +264,12 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByDoctorID(doc_id uint, 
 		}
 
 		patient := models.ShortPatientResponse{
-			ID:        rec.Doctor.ID,
-			FullName:  rec.Doctor.FullName,
-			BirthDate: rec.Patient.BirthDate,
-			IsMale:    rec.Patient.IsMale,
+			ID:         rec.Doctor.ID,
+			LastName:   rec.Patient.LastName,
+			FirstName:  rec.Patient.FirstName,
+			MiddleName: rec.Patient.MiddleName,
+			BirthDate:  rec.Patient.BirthDate,
+			IsMale:     rec.Patient.IsMale,
 		}
 
 		response[i] = models.ReceptionHospitalResponse{
@@ -376,7 +406,9 @@ func (u *ReceptionHospitalUsecase) GetReceptionHospitalByID(
 		ID:                 reception.ID,
 		Date:               reception.Date.Format("02.01.2006 15:04"),
 		Status:             getStatusText(reception.Status),
-		PatientName:        reception.Patient.FullName,
+		LastName:           reception.Patient.LastName,
+		FirstName:          reception.Patient.FirstName,
+		MiddleName:         reception.Patient.MiddleName,
 		PatientID:          reception.Patient.ID,
 		Diagnosis:          reception.Diagnosis,
 		Address:            reception.Address,

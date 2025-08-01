@@ -33,9 +33,9 @@ func (h *Handler) LoginDoctor(c *gin.Context) {
 		return
 	}
 
-	h.logger.Info("Auth attempt", "login", req.Username)
+	h.logger.Info("Auth attempt", "phone", req.Phone)
 
-	id, token, err := h.usecase.LoginDoctor(c.Request.Context(), req.Username, req.Password)
+	id, token, err := h.usecase.LoginDoctor(c.Request.Context(), req.Phone, req.Password)
 	if err != nil {
 		h.logger.Error("Auth failed", "error", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
@@ -46,4 +46,10 @@ func (h *Handler) LoginDoctor(c *gin.Context) {
 		ID:    id,
 		Token: token,
 	})
+}
+
+func (h *Handler) GetVersionProject(c *gin.Context) {
+	version := "1.2.3"
+	// version := h.usecase.GetVersion()
+	c.JSON(http.StatusOK, gin.H{"version": version})
 }

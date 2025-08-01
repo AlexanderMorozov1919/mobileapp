@@ -168,14 +168,14 @@ func seedTestData(db *gorm.DB) error {
 		// Неврологи
 		{
 			FullName:         "Иванов Иван Иванович",
-			Login:            "doctor_ivanov",
+			Phone:            "+79622840765",
 			PasswordHash:     hashPass123,
 			SpecializationID: 1,
 			Specialization:   &entities.Specialization{ID: 1, Title: "Невролог"},
 		},
 		{
 			FullName:         "Петрова Мария Сергеевна",
-			Login:            "doctor_petrova",
+			Phone:            "+79161234561",
 			PasswordHash:     hashPass123,
 			SpecializationID: 1,
 			Specialization:   &entities.Specialization{ID: 1, Title: "Невролог"},
@@ -183,14 +183,14 @@ func seedTestData(db *gorm.DB) error {
 		// Травматологи
 		{
 			FullName:         "Сидоров Алексей Дмитриевич",
-			Login:            "doctor_sidorov",
+			Phone:            "+79161234562",
 			PasswordHash:     hashPass123,
 			SpecializationID: 2,
 			Specialization:   &entities.Specialization{ID: 2, Title: "Травматолог"},
 		},
 		{
 			FullName:         "Кузнецова Елена Викторовна",
-			Login:            "doctor_kuznetsova",
+			Phone:            "+79161234563",
 			PasswordHash:     hashPass123,
 			SpecializationID: 2,
 			Specialization:   &entities.Specialization{ID: 2, Title: "Травматолог"},
@@ -198,7 +198,7 @@ func seedTestData(db *gorm.DB) error {
 		// Кардиологи
 		{
 			FullName:         "Смирнов Дмитрий Олегович",
-			Login:            "doctor_smirnov",
+			Phone:            "+79161234564",
 			PasswordHash:     hashPass123,
 			SpecializationID: 3,
 			Specialization:   &entities.Specialization{ID: 3, Title: "Психиатр"},
@@ -206,7 +206,7 @@ func seedTestData(db *gorm.DB) error {
 		// Неврологи
 		{
 			FullName:         "Васильев Андрей Николаевич",
-			Login:            "doctor_vasiliev",
+			Phone:            "+79161234565",
 			PasswordHash:     hashPass123,
 			SpecializationID: 4,
 			Specialization:   &entities.Specialization{ID: 4, Title: "Уролог"},
@@ -214,7 +214,7 @@ func seedTestData(db *gorm.DB) error {
 		// Травматологи
 		{
 			FullName:         "Попов Сергей Иванович",
-			Login:            "doctor_popov",
+			Phone:            "+79161234566",
 			PasswordHash:     hashPass123,
 			SpecializationID: 6,
 			Specialization:   &entities.Specialization{ID: 6, Title: "Аллерголог"},
@@ -222,7 +222,7 @@ func seedTestData(db *gorm.DB) error {
 		// Психиатры
 		{
 			FullName:         "Морозова Ольга Дмитриевна",
-			Login:            "doctor_morozova",
+			Phone:            "+79161234567",
 			PasswordHash:     hashPass123,
 			SpecializationID: 7,
 			Specialization:   &entities.Specialization{ID: 7, Title: "Проктолог"},
@@ -254,21 +254,21 @@ func seedTestData(db *gorm.DB) error {
 
 	// 4. Создаем пациентов
 	patients := []*entities.Patient{
-		{FullName: "Смирнов Алексей Петрович", BirthDate: parseDate("1980-05-15"), IsMale: true},
-		{FullName: "Кузнецова Анна Владимировна", BirthDate: parseDate("1992-08-21"), IsMale: false},
-		{FullName: "Попов Дмитрий Игоревич", BirthDate: parseDate("1975-11-03"), IsMale: true},
-		{FullName: "Васильева Елена Александровна", BirthDate: parseDate("1988-07-14"), IsMale: false},
-		{FullName: "Новиков Сергей Олегович", BirthDate: parseDate("1995-02-28"), IsMale: true},
-		{FullName: "Морозова Ольга Дмитриевна", BirthDate: parseDate("1983-09-17"), IsMale: false},
-		{FullName: "Лебедев Андрей Николаевич", BirthDate: parseDate("1978-12-05"), IsMale: true},
-		{FullName: "Соколова Татьяна Викторовна", BirthDate: parseDate("1990-04-30"), IsMale: false},
-		{FullName: "Козлов Артем Сергеевич", BirthDate: parseDate("1987-06-22"), IsMale: true},
-		{FullName: "Павлова Наталья Игоревна", BirthDate: parseDate("1993-03-11"), IsMale: false},
+		{LastName: "Смирнов", FirstName: "Алексей", MiddleName: "Петрович", BirthDate: parseDate("1980-05-15"), IsMale: true},
+		{LastName: "Кузнецова", FirstName: "Анна", MiddleName: "Владимировна", BirthDate: parseDate("1992-08-21"), IsMale: false},
+		{LastName: "Попов", FirstName: "Дмитрий", MiddleName: "Игоревич", BirthDate: parseDate("1975-11-03"), IsMale: true},
+		{LastName: "Васильева", FirstName: "Елена", MiddleName: "Александровна", BirthDate: parseDate("1988-07-14"), IsMale: false},
+		{LastName: "Новиков", FirstName: "Сергей", MiddleName: "Олегович", BirthDate: parseDate("1995-02-28"), IsMale: true},
+		{LastName: "Морозова", FirstName: "Ольга", MiddleName: "Дмитриевна", BirthDate: parseDate("1983-09-17"), IsMale: false},
+		{LastName: "Лебедев", FirstName: "Андрей", MiddleName: "Николаевич", BirthDate: parseDate("1978-12-05"), IsMale: true},
+		{LastName: "Соколова", FirstName: "Татьяна", MiddleName: "Викторовна", BirthDate: parseDate("1990-04-30"), IsMale: false},
+		{LastName: "Козлов", FirstName: "Артем", MiddleName: "Сергеевич", BirthDate: parseDate("1987-06-22"), IsMale: true},
+		{LastName: "Павлова", FirstName: "Наталья", MiddleName: "Игоревна", BirthDate: parseDate("1993-03-11"), IsMale: false},
 	}
 
 	for _, pat := range patients {
 		if err := db.Create(pat).Error; err != nil {
-			return fmt.Errorf("failed to create patient %s: %w", pat.FullName, err)
+			return fmt.Errorf("failed to create patient %s: %w", pat.LastName, err)
 		}
 	}
 
@@ -801,31 +801,31 @@ func createEmergencyCallsAndSMPReceptions(
 			smpJsonData, _ = json.Marshal(defaultData)
 		}
 
-		// Определяем диагноз и рекомендации из специализированных данных
-		diagnosis := "Неотложное состояние" // Значения по умолчанию
-		recommendations := "Госпитализация"
+		// // Определяем диагноз и рекомендации из специализированных данных
+		// diagnosis := "Неотложное состояние" // Значения по умолчанию
+		// recommendations := "Госпитализация"
 
-		// Извлекаем диагноз и рекомендации из полей документа для согласованности
-		for _, field := range specDocument.Fields {
-			if field.Name == "diagnosis" && field.Value != nil {
-				if diagStr, ok := field.Value.(string); ok && diagStr != "" {
-					diagnosis = diagStr
-				}
-			}
-			if field.Name == "recommendations" && field.Value != nil {
-				if recStr, ok := field.Value.(string); ok && recStr != "" {
-					recommendations = recStr
-				}
-			}
-		}
+		// // Извлекаем диагноз и рекомендации из полей документа для согласованности
+		// for _, field := range specDocument.Fields {
+		// 	if field.Name == "diagnosis" && field.Value != nil {
+		// 		if diagStr, ok := field.Value.(string); ok && diagStr != "" {
+		// 			diagnosis = diagStr
+		// 		}
+		// 	}
+		// 	if field.Name == "recommendations" && field.Value != nil {
+		// 		if recStr, ok := field.Value.(string); ok && recStr != "" {
+		// 			recommendations = recStr
+		// 		}
+		// 	}
+		// }
 
 		// Создаем прием SMP
 		reception := &entities.ReceptionSMP{
-			EmergencyCallID:      emergencyCall.ID,
-			DoctorID:             doctor.ID,
-			PatientID:            patient.ID,
-			Diagnosis:            diagnosis,
-			Recommendations:      recommendations,
+			EmergencyCallID: emergencyCall.ID,
+			DoctorID:        doctor.ID,
+			PatientID:       patient.ID,
+			// Diagnosis:            diagnosis,
+			// Recommendations:      recommendations,
 			CachedSpecialization: doctor.Specialization.Title,
 			SpecializationData: pgtype.JSONB{
 				Bytes:  smpJsonData,

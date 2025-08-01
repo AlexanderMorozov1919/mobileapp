@@ -14,7 +14,7 @@ func (r *AuthRepository) GetByLogin(ctx context.Context, login string) (*entitie
 
 	var doctor entities.Doctor
 	if err := r.db.WithContext(ctx).
-		Where("login = ?", login).
+		Where("phone = ?", login).
 		First(&doctor).
 		Error; err != nil {
 

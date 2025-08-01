@@ -72,14 +72,16 @@ func (u *MedCardUsecase) GetMedCardByPatientID(id uint) (models.MedCardResponse,
 			true,
 		)
 	}
-
+	// fullName := patient.LastName + " " + patient.FirstName + " " + patient.MiddleName
 	// Формируем ответ
 	medCard := models.MedCardResponse{
 		Patient: models.ShortPatientResponse{
-			ID:        patient.ID,
-			FullName:  patient.FullName,
-			BirthDate: patient.BirthDate,
-			IsMale:    patient.IsMale,
+			ID:         patient.ID,
+			LastName:   patient.LastName,
+			FirstName:  patient.FirstName,
+			MiddleName: patient.MiddleName,
+			BirthDate:  patient.BirthDate,
+			IsMale:     patient.IsMale,
 		},
 		PersonalInfo: models.PersonalInfoResponse{
 			PassportSeries: personalInfo.PassportSeries,
@@ -133,9 +135,11 @@ func (u *MedCardUsecase) UpdateMedCard(input *models.UpdateMedCardRequest) (mode
 
 	// 1. Обновляем данные пациента
 	patientUpdate := map[string]interface{}{
-		"full_name":  input.Patient.FullName,
-		"birth_date": input.Patient.BirthDate,
-		"is_male":    input.Patient.IsMale,
+		"last_name":   input.Patient.LastName,
+		"first_name":  input.Patient.FirstName,
+		"middle_name": input.Patient.MiddleName,
+		"birth_date":  input.Patient.BirthDate,
+		"is_male":     input.Patient.IsMale,
 	}
 	if _, err := u.patientRepo.UpdatePatientWithTx(tx, input.Patient.ID, patientUpdate); err != nil {
 		tx.Rollback()
@@ -280,13 +284,16 @@ func (u *MedCardUsecase) getFullMedCardWithTx(tx *gorm.DB, patient *entities.Pat
 	if err != nil {
 		return models.MedCardResponse{}, err
 	}
+	// fullName := patient.LastName + " " + patient.FirstName + " " + patient.MiddleName
 
 	// Формируем ответ
 	response.Patient = models.ShortPatientResponse{
-		ID:        patient.ID,
-		FullName:  patient.FullName,
-		BirthDate: patient.BirthDate,
-		IsMale:    patient.IsMale,
+		ID:         patient.ID,
+		LastName:   patient.LastName,
+		FirstName:  patient.FirstName,
+		MiddleName: patient.MiddleName,
+		BirthDate:  patient.BirthDate,
+		IsMale:     patient.IsMale,
 	}
 
 	response.PersonalInfo = models.PersonalInfoResponse{

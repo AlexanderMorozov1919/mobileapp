@@ -2,7 +2,9 @@ package models
 
 type ReceptionSMPResponse struct {
 	ID                 uint                  `json:"id"`
-	PatientName        string                `json:"patient_name" example:"Иванов Иван"`
+	LastName           string                `json:"last_name" example:"Смирнов"`
+	FirstName          string                `json:"first_name" example:"Алексей"`
+	MiddleName         string                `json:"middle_name" example:"Петрович"`
 	Diagnosis          string                `json:"diagnosis" example:"ОРВИ"`
 	Recommendations    string                `json:"recommendations" example:"Постельный режим"`
 	Specialization     string                `json:"specialization" example:"Терапевт"`
