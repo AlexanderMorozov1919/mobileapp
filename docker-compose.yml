@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  db-postgres:
+    container_name: postgres
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: med_db
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "med_db", "-U", "postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medservice-net
+
+  go-api:
+    container_name: go-api-medservice
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db-postgres:
+        condition: service_healthy
+    ports:
+      - "65237:${APP_PORT}" # Проброси порт из APP_PORT
+    env_file:
+      - .env
+    networks:
+      - medservice-net
+
+volumes:
+  postgres_data:
+
+networks:
+  medservice-net:

@@ -92,6 +92,7 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByPatientID(patientId ui
 		response := models.ReceptionHospitalResponse{
 			ID: reception.ID,
 			Doctor: models.DoctorInfoResponse{
+				DoctorID:       reception.DoctorID,
 				FullName:       reception.Doctor.FullName,
 				Specialization: reception.CachedSpecialization,
 			},
@@ -264,7 +265,7 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByDoctorID(doc_id uint, 
 		}
 
 		patient := models.ShortPatientResponse{
-			ID:         rec.Doctor.ID,
+			ID:         rec.PatientID,
 			LastName:   rec.Patient.LastName,
 			FirstName:  rec.Patient.FirstName,
 			MiddleName: rec.Patient.MiddleName,

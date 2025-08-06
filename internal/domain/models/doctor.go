@@ -11,6 +11,7 @@ type DoctorResponse struct {
 }
 
 type DoctorInfoResponse struct {
+	DoctorID       uint   `json:"doctor_id" example: "1"`
 	FullName       string `json:"full_name" example:"Иванов Иван Иванович"` // Полное имя врача
 	Specialization string `json:"specialization"`
 }
