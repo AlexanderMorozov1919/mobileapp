@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   db-postgres:
-    container_name: postgres
+    container_name: db-mobileapp
     image: postgres:13-alpine
     environment:
       POSTGRES_USER: postgres
@@ -14,14 +14,15 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - medservice-net
+    restart: unless-stopped
 
   go-api:
-    container_name: go-api-medservice
+    container_name: api-mobileapp
     build:
       context: .
       dockerfile: Dockerfile
@@ -29,11 +30,12 @@ services:
       db-postgres:
         condition: service_healthy
     ports:
-      - "65237:${APP_PORT}" # Проброси порт из APP_PORT
+      - "65321:${APP_PORT}" # Проброси порт из APP_PORT
     env_file:
       - .env
     networks:
       - medservice-net
+    restart: unless-stopped
 
 volumes:
   postgres_data:
