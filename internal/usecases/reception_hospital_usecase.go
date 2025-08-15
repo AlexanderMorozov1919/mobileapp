@@ -280,6 +280,7 @@ func (u *ReceptionHospitalUsecase) GetHospitalReceptionsByDoctorID(doc_id uint, 
 			Diagnosis:       rec.Diagnosis,
 			Recommendations: rec.Recommendations,
 			Status:          string(rec.Status),
+			Date:            rec.Date,
 		}
 	}
 

@@ -515,6 +515,7 @@ func (u *ReceptionSmpUsecase) GetReceptionsSMPByEmergencyCall(
 	for i, rec := range receptions {
 
 		doctor := models.DoctorInfoResponse{
+			DoctorID:       rec.DoctorID,
 			FullName:       rec.Doctor.FullName,
 			Specialization: rec.CachedSpecialization,
 		}

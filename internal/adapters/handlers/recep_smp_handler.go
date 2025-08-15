@@ -31,7 +31,6 @@ func (h *Handler) GetReceptionsSMPByCallID(c *gin.Context) {
 	callID, err := strconv.ParseUint(callIDStr, 10, 32)
 	if err != nil {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "parameter 'call_id' must be an integer", false)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid call ID"})
 		return
 	}
 
@@ -40,7 +39,6 @@ func (h *Handler) GetReceptionsSMPByCallID(c *gin.Context) {
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "page must be a positive integer", false)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "page must be a positive integer"})
 		return
 	}
 
@@ -49,7 +47,6 @@ func (h *Handler) GetReceptionsSMPByCallID(c *gin.Context) {
 	perPage, err := strconv.Atoi(perPageStr)
 	if err != nil || perPage < 5 {
 		h.ErrorResponse(c, err, http.StatusBadRequest, "page must be a positive integer", false)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "perPage must be a positive integer > 5"})
 		return
 	}
 

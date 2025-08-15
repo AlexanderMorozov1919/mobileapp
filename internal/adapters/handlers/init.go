@@ -3,11 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/AlexanderMorozov1919/mobileapp/internal/middleware/logging"
-	"github.com/AlexanderMorozov1919/mobileapp/internal/middleware/swagger"
-
 	"github.com/AlexanderMorozov1919/mobileapp/internal/config"
 	"github.com/AlexanderMorozov1919/mobileapp/internal/interfaces"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/middleware/logging"
+	"github.com/AlexanderMorozov1919/mobileapp/internal/middleware/swagger"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/swaggo/files"

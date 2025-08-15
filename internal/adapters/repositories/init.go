@@ -603,7 +603,7 @@ func createEmergencyCallsAndSMPReceptions(
 		// Создаем экстренный вызов с уникальным возрастающим приоритетом
 		emergencyCall := entities.EmergencyCall{
 			DoctorID:  doctor.ID,
-			Emergency: i%2 == 0,
+			Emergency: i%3 == 0,
 			Priority:  priority,
 			Address:   addresses[i%len(addresses)],
 			Phone:     fmt.Sprintf("+7915%07d", 2000000+i),
